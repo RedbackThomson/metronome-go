@@ -39,9 +39,9 @@ func TestCustomerCommitNewWithOptionalParams(t *testing.T) {
 		Priority:              metronome.F(100.000000),
 		ProductID:             metronome.F("f14d6729-6a44-4b13-9908-9387f1918790"),
 		Type:                  metronome.F(metronome.CustomerCommitNewParamsTypePrepaid),
-		ApplicableContractIDs: metronome.F([]string{"string", "string", "string"}),
-		ApplicableProductIDs:  metronome.F([]string{"182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e", "182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e", "182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e"}),
-		ApplicableProductTags: metronome.F([]string{"string", "string", "string"}),
+		ApplicableContractIDs: metronome.F([]string{"string"}),
+		ApplicableProductIDs:  metronome.F([]string{"182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e"}),
+		ApplicableProductTags: metronome.F([]string{"string"}),
 		CustomFields: metronome.F(map[string]string{
 			"foo": "string",
 		}),
@@ -60,14 +60,16 @@ func TestCustomerCommitNewWithOptionalParams(t *testing.T) {
 			}),
 			ScheduleItems: metronome.F([]metronome.CustomerCommitNewParamsInvoiceScheduleScheduleItem{{
 				Timestamp: metronome.F(time.Now()),
-				Amount:    metronome.F(10000000.000000),
+				Amount:    metronome.F(0.000000),
 				Quantity:  metronome.F(1.000000),
 				UnitPrice: metronome.F(10000000.000000),
 			}}),
 		}),
 		Name:                    metronome.F("My Commit"),
 		NetsuiteSalesOrderID:    metronome.F("netsuite_sales_order_id"),
+		RateType:                metronome.F(metronome.CustomerCommitNewParamsRateTypeCommitRate),
 		SalesforceOpportunityID: metronome.F("salesforce_opportunity_id"),
+		UniquenessKey:           metronome.F("x"),
 	})
 	if err != nil {
 		var apierr *metronome.Error
@@ -96,6 +98,7 @@ func TestCustomerCommitListWithOptionalParams(t *testing.T) {
 		CoveringDate:           metronome.F(time.Now()),
 		EffectiveBefore:        metronome.F(time.Now()),
 		IncludeArchived:        metronome.F(true),
+		IncludeBalance:         metronome.F(true),
 		IncludeContractCommits: metronome.F(true),
 		IncludeLedgers:         metronome.F(true),
 		NextPage:               metronome.F("next_page"),

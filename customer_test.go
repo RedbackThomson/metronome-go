@@ -32,6 +32,7 @@ func TestCustomerNewWithOptionalParams(t *testing.T) {
 		BillingConfig: metronome.F(metronome.CustomerNewParamsBillingConfig{
 			BillingProviderCustomerID: metronome.F("billing_provider_customer_id"),
 			BillingProviderType:       metronome.F(metronome.CustomerNewParamsBillingConfigBillingProviderTypeAwsMarketplace),
+			AwsIsSubscriptionProduct:  metronome.F(true),
 			AwsProductCode:            metronome.F("aws_product_code"),
 			AwsRegion:                 metronome.F(metronome.CustomerNewParamsBillingConfigAwsRegionAfSouth1),
 			StripeCollectionMethod:    metronome.F(metronome.CustomerNewParamsBillingConfigStripeCollectionMethodChargeAutomatically),
@@ -39,6 +40,15 @@ func TestCustomerNewWithOptionalParams(t *testing.T) {
 		CustomFields: metronome.F(map[string]string{
 			"foo": "string",
 		}),
+		CustomerBillingProviderConfigurations: metronome.F([]metronome.CustomerNewParamsCustomerBillingProviderConfiguration{{
+			BillingProvider: metronome.F(metronome.CustomerNewParamsCustomerBillingProviderConfigurationsBillingProviderAwsMarketplace),
+			Configuration: metronome.F(map[string]interface{}{
+				"stripe_customer_id":       "bar",
+				"stripe_collection_method": "bar",
+			}),
+			DeliveryMethod:   metronome.F(metronome.CustomerNewParamsCustomerBillingProviderConfigurationsDeliveryMethodDirectToBillingProvider),
+			DeliveryMethodID: metronome.F("182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e"),
+		}}),
 		ExternalID:    metronome.F("x"),
 		IngestAliases: metronome.F([]string{"team@example.com"}),
 	})
@@ -63,7 +73,9 @@ func TestCustomerGet(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithBearerToken("My Bearer Token"),
 	)
-	_, err := client.Customers.Get(context.TODO(), "d7abd0cd-4ae9-4db7-8676-e986a4ebd8dc")
+	_, err := client.Customers.Get(context.TODO(), metronome.CustomerGetParams{
+		CustomerID: metronome.F("d7abd0cd-4ae9-4db7-8676-e986a4ebd8dc"),
+	})
 	if err != nil {
 		var apierr *metronome.Error
 		if errors.As(err, &apierr) {
@@ -86,12 +98,12 @@ func TestCustomerListWithOptionalParams(t *testing.T) {
 		option.WithBearerToken("My Bearer Token"),
 	)
 	_, err := client.Customers.List(context.TODO(), metronome.CustomerListParams{
-		CustomerIDs:          metronome.F([]string{"string", "string", "string"}),
+		CustomerIDs:          metronome.F([]string{"string"}),
 		IngestAlias:          metronome.F("ingest_alias"),
 		Limit:                metronome.F(int64(1)),
 		NextPage:             metronome.F("next_page"),
 		OnlyArchived:         metronome.F(true),
-		SalesforceAccountIDs: metronome.F([]string{"string", "string", "string"}),
+		SalesforceAccountIDs: metronome.F([]string{"string"}),
 	})
 	if err != nil {
 		var apierr *metronome.Error
@@ -140,15 +152,13 @@ func TestCustomerListBillableMetricsWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithBearerToken("My Bearer Token"),
 	)
-	_, err := client.Customers.ListBillableMetrics(
-		context.TODO(),
-		"d7abd0cd-4ae9-4db7-8676-e986a4ebd8dc",
-		metronome.CustomerListBillableMetricsParams{
-			Limit:         metronome.F(int64(1)),
-			NextPage:      metronome.F("next_page"),
-			OnCurrentPlan: metronome.F(true),
-		},
-	)
+	_, err := client.Customers.ListBillableMetrics(context.TODO(), metronome.CustomerListBillableMetricsParams{
+		CustomerID:      metronome.F("d7abd0cd-4ae9-4db7-8676-e986a4ebd8dc"),
+		IncludeArchived: metronome.F(true),
+		Limit:           metronome.F(int64(1)),
+		NextPage:        metronome.F("next_page"),
+		OnCurrentPlan:   metronome.F(true),
+	})
 	if err != nil {
 		var apierr *metronome.Error
 		if errors.As(err, &apierr) {
@@ -170,16 +180,13 @@ func TestCustomerListCostsWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithBearerToken("My Bearer Token"),
 	)
-	_, err := client.Customers.ListCosts(
-		context.TODO(),
-		"d7abd0cd-4ae9-4db7-8676-e986a4ebd8dc",
-		metronome.CustomerListCostsParams{
-			EndingBefore: metronome.F(time.Now()),
-			StartingOn:   metronome.F(time.Now()),
-			Limit:        metronome.F(int64(1)),
-			NextPage:     metronome.F("next_page"),
-		},
-	)
+	_, err := client.Customers.ListCosts(context.TODO(), metronome.CustomerListCostsParams{
+		CustomerID:   metronome.F("d7abd0cd-4ae9-4db7-8676-e986a4ebd8dc"),
+		EndingBefore: metronome.F(time.Now()),
+		StartingOn:   metronome.F(time.Now()),
+		Limit:        metronome.F(int64(1)),
+		NextPage:     metronome.F("next_page"),
+	})
 	if err != nil {
 		var apierr *metronome.Error
 		if errors.As(err, &apierr) {
@@ -201,13 +208,10 @@ func TestCustomerSetIngestAliases(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithBearerToken("My Bearer Token"),
 	)
-	err := client.Customers.SetIngestAliases(
-		context.TODO(),
-		"d7abd0cd-4ae9-4db7-8676-e986a4ebd8dc",
-		metronome.CustomerSetIngestAliasesParams{
-			IngestAliases: metronome.F([]string{"team@example.com"}),
-		},
-	)
+	err := client.Customers.SetIngestAliases(context.TODO(), metronome.CustomerSetIngestAliasesParams{
+		CustomerID:    metronome.F("d7abd0cd-4ae9-4db7-8676-e986a4ebd8dc"),
+		IngestAliases: metronome.F([]string{"team@example.com"}),
+	})
 	if err != nil {
 		var apierr *metronome.Error
 		if errors.As(err, &apierr) {
@@ -229,13 +233,10 @@ func TestCustomerSetName(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithBearerToken("My Bearer Token"),
 	)
-	_, err := client.Customers.SetName(
-		context.TODO(),
-		"d7abd0cd-4ae9-4db7-8676-e986a4ebd8dc",
-		metronome.CustomerSetNameParams{
-			Name: metronome.F("Example, Inc."),
-		},
-	)
+	_, err := client.Customers.SetName(context.TODO(), metronome.CustomerSetNameParams{
+		CustomerID: metronome.F("d7abd0cd-4ae9-4db7-8676-e986a4ebd8dc"),
+		Name:       metronome.F("Example, Inc."),
+	})
 	if err != nil {
 		var apierr *metronome.Error
 		if errors.As(err, &apierr) {
@@ -257,14 +258,11 @@ func TestCustomerUpdateConfigWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithBearerToken("My Bearer Token"),
 	)
-	err := client.Customers.UpdateConfig(
-		context.TODO(),
-		"d7abd0cd-4ae9-4db7-8676-e986a4ebd8dc",
-		metronome.CustomerUpdateConfigParams{
-			LeaveStripeInvoicesInDraft: metronome.F(true),
-			SalesforceAccountID:        metronome.F("0015500001WO1ZiABL"),
-		},
-	)
+	err := client.Customers.UpdateConfig(context.TODO(), metronome.CustomerUpdateConfigParams{
+		CustomerID:                 metronome.F("d7abd0cd-4ae9-4db7-8676-e986a4ebd8dc"),
+		LeaveStripeInvoicesInDraft: metronome.F(true),
+		SalesforceAccountID:        metronome.F("0015500001WO1ZiABL"),
+	})
 	if err != nil {
 		var apierr *metronome.Error
 		if errors.As(err, &apierr) {

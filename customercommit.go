@@ -129,7 +129,9 @@ type CustomerCommitNewParams struct {
 	CustomerID     param.Field[string]                                `json:"customer_id,required" format:"uuid"`
 	// If multiple credits or commits are applicable, the one with the lower priority
 	// will apply first.
-	Priority  param.Field[float64]                     `json:"priority,required"`
+	Priority param.Field[float64] `json:"priority,required"`
+	// ID of the fixed product associated with the commit. This is required because
+	// products are used to invoice the commit amount.
 	ProductID param.Field[string]                      `json:"product_id,required" format:"uuid"`
 	Type      param.Field[CustomerCommitNewParamsType] `json:"type,required"`
 	// Which contract the commit applies to. If not provided, the commit applies to all
@@ -156,9 +158,15 @@ type CustomerCommitNewParams struct {
 	// displayed on invoices
 	Name param.Field[string] `json:"name"`
 	// This field's availability is dependent on your client's configuration.
-	NetsuiteSalesOrderID param.Field[string] `json:"netsuite_sales_order_id"`
+	NetsuiteSalesOrderID param.Field[string]                          `json:"netsuite_sales_order_id"`
+	RateType             param.Field[CustomerCommitNewParamsRateType] `json:"rate_type"`
 	// This field's availability is dependent on your client's configuration.
 	SalesforceOpportunityID param.Field[string] `json:"salesforce_opportunity_id"`
+	// Prevents the creation of duplicates. If a request to create a commit or credit
+	// is made with a uniqueness key that was previously used to create a commit or
+	// credit, a new record will not be created and the request will fail with a 409
+	// error.
+	UniquenessKey param.Field[string] `json:"uniqueness_key"`
 }
 
 func (r CustomerCommitNewParams) MarshalJSON() (data []byte, err error) {
@@ -169,7 +177,8 @@ func (r CustomerCommitNewParams) MarshalJSON() (data []byte, err error) {
 // only one schedule item is allowed and amount must match invoice_schedule total.
 type CustomerCommitNewParamsAccessSchedule struct {
 	ScheduleItems param.Field[[]CustomerCommitNewParamsAccessScheduleScheduleItem] `json:"schedule_items,required"`
-	CreditTypeID  param.Field[string]                                              `json:"credit_type_id" format:"uuid"`
+	// Defaults to USD (cents) if not passed
+	CreditTypeID param.Field[string] `json:"credit_type_id" format:"uuid"`
 }
 
 func (r CustomerCommitNewParamsAccessSchedule) MarshalJSON() (data []byte, err error) {
@@ -208,7 +217,7 @@ func (r CustomerCommitNewParamsType) IsKnown() bool {
 // accesss_schedule amount. Optional for "PREPAID" commits: if not provided, this
 // will be a "complimentary" commit with no invoice.
 type CustomerCommitNewParamsInvoiceSchedule struct {
-	// Defaults to USD if not passed. Only USD is supported at this time.
+	// Defaults to USD (cents) if not passed.
 	CreditTypeID param.Field[string] `json:"credit_type_id" format:"uuid"`
 	// Enter the unit price and quantity for the charge or instead only send the
 	// amount. If amount is sent, the unit price is assumed to be the amount and
@@ -304,6 +313,23 @@ func (r CustomerCommitNewParamsInvoiceScheduleScheduleItem) MarshalJSON() (data 
 	return apijson.MarshalRoot(r)
 }
 
+type CustomerCommitNewParamsRateType string
+
+const (
+	CustomerCommitNewParamsRateTypeCommitRateUppercase CustomerCommitNewParamsRateType = "COMMIT_RATE"
+	CustomerCommitNewParamsRateTypeCommitRate          CustomerCommitNewParamsRateType = "commit_rate"
+	CustomerCommitNewParamsRateTypeListRateUppercase   CustomerCommitNewParamsRateType = "LIST_RATE"
+	CustomerCommitNewParamsRateTypeListRate            CustomerCommitNewParamsRateType = "list_rate"
+)
+
+func (r CustomerCommitNewParamsRateType) IsKnown() bool {
+	switch r {
+	case CustomerCommitNewParamsRateTypeCommitRateUppercase, CustomerCommitNewParamsRateTypeCommitRate, CustomerCommitNewParamsRateTypeListRateUppercase, CustomerCommitNewParamsRateTypeListRate:
+		return true
+	}
+	return false
+}
+
 type CustomerCommitListParams struct {
 	CustomerID param.Field[string] `json:"customer_id,required" format:"uuid"`
 	CommitID   param.Field[string] `json:"commit_id" format:"uuid"`
@@ -313,6 +339,9 @@ type CustomerCommitListParams struct {
 	EffectiveBefore param.Field[time.Time] `json:"effective_before" format:"date-time"`
 	// Include commits from archived contracts.
 	IncludeArchived param.Field[bool] `json:"include_archived"`
+	// Include the balance in the response. Setting this flag may cause the query to be
+	// slower.
+	IncludeBalance param.Field[bool] `json:"include_balance"`
 	// Include commits on the contract level.
 	IncludeContractCommits param.Field[bool] `json:"include_contract_commits"`
 	// Include commit ledgers in the response. Setting this flag may cause the query to

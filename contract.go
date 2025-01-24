@@ -116,7 +116,7 @@ func (r *ContractService) GetRateSchedule(ctx context.Context, params ContractGe
 	return
 }
 
-// Create a new, scheduled invoice for Professional Services terms on a contract.
+// Create a new scheduled invoice for Professional Services terms on a contract.
 // This endpoint's availability is dependent on your client's configuration.
 func (r *ContractService) ScheduleProServicesInvoice(ctx context.Context, body ContractScheduleProServicesInvoiceParams, opts ...option.RequestOption) (res *ContractScheduleProServicesInvoiceResponse, err error) {
 	opts = append(r.Options[:], opts...)
@@ -185,14 +185,23 @@ func (r contractGetResponseJSON) RawJSON() string {
 }
 
 type ContractGetResponseData struct {
-	ID           string                             `json:"id,required" format:"uuid"`
-	Amendments   []ContractGetResponseDataAmendment `json:"amendments,required"`
-	Current      shared.ContractWithoutAmendments   `json:"current,required"`
-	CustomerID   string                             `json:"customer_id,required" format:"uuid"`
-	Initial      shared.ContractWithoutAmendments   `json:"initial,required"`
-	CustomFields map[string]string                  `json:"custom_fields"`
-	// This field's availability is dependent on your client's configuration.
+	ID         string                             `json:"id,required" format:"uuid"`
+	Amendments []ContractGetResponseDataAmendment `json:"amendments,required"`
+	Current    shared.ContractWithoutAmendments   `json:"current,required"`
+	CustomerID string                             `json:"customer_id,required" format:"uuid"`
+	Initial    shared.ContractWithoutAmendments   `json:"initial,required"`
+	// RFC 3339 timestamp indicating when the contract was archived. If not returned,
+	// the contract is not archived.
+	ArchivedAt   time.Time         `json:"archived_at" format:"date-time"`
+	CustomFields map[string]string `json:"custom_fields"`
+	// The billing provider configuration associated with a contract.
 	CustomerBillingProviderConfiguration ContractGetResponseDataCustomerBillingProviderConfiguration `json:"customer_billing_provider_configuration"`
+	// Determines which scheduled and commit charges to consolidate onto the Contract's
+	// usage invoice. The charge's `timestamp` must match the usage invoice's
+	// `ending_before` date for consolidation to occur. This field cannot be modified
+	// after a Contract has been created. If this field is omitted, charges will appear
+	// on a separate invoice from usage charges.
+	ScheduledChargesOnUsageInvoices ContractGetResponseDataScheduledChargesOnUsageInvoices `json:"scheduled_charges_on_usage_invoices"`
 	// Prevents the creation of duplicates. If a request to create a record is made
 	// with a previously used uniqueness key, a new record will not be created and the
 	// request will fail with a 409 error.
@@ -208,8 +217,10 @@ type contractGetResponseDataJSON struct {
 	Current                              apijson.Field
 	CustomerID                           apijson.Field
 	Initial                              apijson.Field
+	ArchivedAt                           apijson.Field
 	CustomFields                         apijson.Field
 	CustomerBillingProviderConfiguration apijson.Field
+	ScheduledChargesOnUsageInvoices      apijson.Field
 	UniquenessKey                        apijson.Field
 	raw                                  string
 	ExtraFields                          map[string]apijson.Field
@@ -331,7 +342,7 @@ func (r ContractGetResponseDataAmendmentsResellerRoyaltiesResellerType) IsKnown(
 	return false
 }
 
-// This field's availability is dependent on your client's configuration.
+// The billing provider configuration associated with a contract.
 type ContractGetResponseDataCustomerBillingProviderConfiguration struct {
 	BillingProvider ContractGetResponseDataCustomerBillingProviderConfigurationBillingProvider `json:"billing_provider,required"`
 	DeliveryMethod  ContractGetResponseDataCustomerBillingProviderConfigurationDeliveryMethod  `json:"delivery_method,required"`
@@ -394,6 +405,25 @@ func (r ContractGetResponseDataCustomerBillingProviderConfigurationDeliveryMetho
 	return false
 }
 
+// Determines which scheduled and commit charges to consolidate onto the Contract's
+// usage invoice. The charge's `timestamp` must match the usage invoice's
+// `ending_before` date for consolidation to occur. This field cannot be modified
+// after a Contract has been created. If this field is omitted, charges will appear
+// on a separate invoice from usage charges.
+type ContractGetResponseDataScheduledChargesOnUsageInvoices string
+
+const (
+	ContractGetResponseDataScheduledChargesOnUsageInvoicesAll ContractGetResponseDataScheduledChargesOnUsageInvoices = "ALL"
+)
+
+func (r ContractGetResponseDataScheduledChargesOnUsageInvoices) IsKnown() bool {
+	switch r {
+	case ContractGetResponseDataScheduledChargesOnUsageInvoicesAll:
+		return true
+	}
+	return false
+}
+
 type ContractListResponse struct {
 	Data []ContractListResponseData `json:"data,required"`
 	JSON contractListResponseJSON   `json:"-"`
@@ -416,14 +446,23 @@ func (r contractListResponseJSON) RawJSON() string {
 }
 
 type ContractListResponseData struct {
-	ID           string                              `json:"id,required" format:"uuid"`
-	Amendments   []ContractListResponseDataAmendment `json:"amendments,required"`
-	Current      shared.ContractWithoutAmendments    `json:"current,required"`
-	CustomerID   string                              `json:"customer_id,required" format:"uuid"`
-	Initial      shared.ContractWithoutAmendments    `json:"initial,required"`
-	CustomFields map[string]string                   `json:"custom_fields"`
-	// This field's availability is dependent on your client's configuration.
+	ID         string                              `json:"id,required" format:"uuid"`
+	Amendments []ContractListResponseDataAmendment `json:"amendments,required"`
+	Current    shared.ContractWithoutAmendments    `json:"current,required"`
+	CustomerID string                              `json:"customer_id,required" format:"uuid"`
+	Initial    shared.ContractWithoutAmendments    `json:"initial,required"`
+	// RFC 3339 timestamp indicating when the contract was archived. If not returned,
+	// the contract is not archived.
+	ArchivedAt   time.Time         `json:"archived_at" format:"date-time"`
+	CustomFields map[string]string `json:"custom_fields"`
+	// The billing provider configuration associated with a contract.
 	CustomerBillingProviderConfiguration ContractListResponseDataCustomerBillingProviderConfiguration `json:"customer_billing_provider_configuration"`
+	// Determines which scheduled and commit charges to consolidate onto the Contract's
+	// usage invoice. The charge's `timestamp` must match the usage invoice's
+	// `ending_before` date for consolidation to occur. This field cannot be modified
+	// after a Contract has been created. If this field is omitted, charges will appear
+	// on a separate invoice from usage charges.
+	ScheduledChargesOnUsageInvoices ContractListResponseDataScheduledChargesOnUsageInvoices `json:"scheduled_charges_on_usage_invoices"`
 	// Prevents the creation of duplicates. If a request to create a record is made
 	// with a previously used uniqueness key, a new record will not be created and the
 	// request will fail with a 409 error.
@@ -439,8 +478,10 @@ type contractListResponseDataJSON struct {
 	Current                              apijson.Field
 	CustomerID                           apijson.Field
 	Initial                              apijson.Field
+	ArchivedAt                           apijson.Field
 	CustomFields                         apijson.Field
 	CustomerBillingProviderConfiguration apijson.Field
+	ScheduledChargesOnUsageInvoices      apijson.Field
 	UniquenessKey                        apijson.Field
 	raw                                  string
 	ExtraFields                          map[string]apijson.Field
@@ -562,7 +603,7 @@ func (r ContractListResponseDataAmendmentsResellerRoyaltiesResellerType) IsKnown
 	return false
 }
 
-// This field's availability is dependent on your client's configuration.
+// The billing provider configuration associated with a contract.
 type ContractListResponseDataCustomerBillingProviderConfiguration struct {
 	BillingProvider ContractListResponseDataCustomerBillingProviderConfigurationBillingProvider `json:"billing_provider,required"`
 	DeliveryMethod  ContractListResponseDataCustomerBillingProviderConfigurationDeliveryMethod  `json:"delivery_method,required"`
@@ -620,6 +661,25 @@ const (
 func (r ContractListResponseDataCustomerBillingProviderConfigurationDeliveryMethod) IsKnown() bool {
 	switch r {
 	case ContractListResponseDataCustomerBillingProviderConfigurationDeliveryMethodDirectToBillingProvider, ContractListResponseDataCustomerBillingProviderConfigurationDeliveryMethodAwsSqs, ContractListResponseDataCustomerBillingProviderConfigurationDeliveryMethodTackle, ContractListResponseDataCustomerBillingProviderConfigurationDeliveryMethodAwsSns:
+		return true
+	}
+	return false
+}
+
+// Determines which scheduled and commit charges to consolidate onto the Contract's
+// usage invoice. The charge's `timestamp` must match the usage invoice's
+// `ending_before` date for consolidation to occur. This field cannot be modified
+// after a Contract has been created. If this field is omitted, charges will appear
+// on a separate invoice from usage charges.
+type ContractListResponseDataScheduledChargesOnUsageInvoices string
+
+const (
+	ContractListResponseDataScheduledChargesOnUsageInvoicesAll ContractListResponseDataScheduledChargesOnUsageInvoices = "ALL"
+)
+
+func (r ContractListResponseDataScheduledChargesOnUsageInvoices) IsKnown() bool {
+	switch r {
+	case ContractListResponseDataScheduledChargesOnUsageInvoicesAll:
 		return true
 	}
 	return false
@@ -713,72 +773,90 @@ func (r contractListBalancesResponseJSON) RawJSON() string {
 
 type ContractListBalancesResponseData struct {
 	ID string `json:"id,required" format:"uuid"`
-	// This field can have the runtime type of [shared.CommitContract],
-	// [shared.CreditContract].
-	Contract interface{}                          `json:"contract,required"`
-	Type     ContractListBalancesResponseDataType `json:"type,required"`
-	Name     string                               `json:"name"`
-	// If multiple credits or commits are applicable, the one with the lower priority
-	// will apply first.
-	Priority float64 `json:"priority"`
 	// This field can have the runtime type of [shared.CommitProduct],
 	// [shared.CreditProduct].
-	Product interface{} `json:"product"`
+	Product interface{}                          `json:"product,required"`
+	Type    ContractListBalancesResponseDataType `json:"type,required"`
 	// The schedule that the customer will gain access to the credits purposed with
 	// this commit.
 	AccessSchedule shared.ScheduleDuration `json:"access_schedule"`
-	// The schedule that the customer will be invoiced for this commit.
-	InvoiceSchedule shared.SchedulePointInTime `json:"invoice_schedule"`
-	// This field can have the runtime type of [shared.CommitInvoiceContract].
-	InvoiceContract interface{} `json:"invoice_contract,required"`
-	// This field can have the runtime type of [shared.CommitRolledOverFrom].
-	RolledOverFrom   interface{} `json:"rolled_over_from,required"`
-	Description      string      `json:"description"`
-	RolloverFraction float64     `json:"rollover_fraction"`
-	// This field can have the runtime type of [[]string].
-	ApplicableProductIDs interface{} `json:"applicable_product_ids,required"`
-	// This field can have the runtime type of [[]string].
-	ApplicableProductTags interface{} `json:"applicable_product_tags,required"`
-	// This field can have the runtime type of [[]string].
-	ApplicableContractIDs interface{} `json:"applicable_contract_ids,required"`
-	// This field's availability is dependent on your client's configuration.
-	NetsuiteSalesOrderID string `json:"netsuite_sales_order_id"`
 	// (DEPRECATED) Use access_schedule + invoice_schedule instead.
 	Amount float64 `json:"amount"`
-	// This field's availability is dependent on your client's configuration.
-	SalesforceOpportunityID string `json:"salesforce_opportunity_id"`
+	// This field can have the runtime type of [[]string].
+	ApplicableContractIDs interface{} `json:"applicable_contract_ids"`
+	// This field can have the runtime type of [[]string].
+	ApplicableProductIDs interface{} `json:"applicable_product_ids"`
+	// This field can have the runtime type of [[]string].
+	ApplicableProductTags interface{} `json:"applicable_product_tags"`
+	// The current balance of the credit or commit. This balance reflects the amount of
+	// credit or commit that the customer has access to use at this moment - thus,
+	// expired and upcoming credit or commit segments contribute 0 to the balance. The
+	// balance will match the sum of all ledger entries with the exception of the case
+	// where the sum of negative manual ledger entries exceeds the positive amount
+	// remaining on the credit or commit - in that case, the balance will be 0. All
+	// manual ledger entries associated with active credit or commit segments are
+	// included in the balance, including future-dated manual ledger entries.
+	Balance float64 `json:"balance"`
+	// This field can have the runtime type of [shared.CommitContract],
+	// [shared.CreditContract].
+	Contract interface{} `json:"contract"`
+	// This field can have the runtime type of [map[string]string].
+	CustomFields interface{} `json:"custom_fields"`
+	Description  string      `json:"description"`
+	// This field can have the runtime type of [shared.CommitInvoiceContract].
+	InvoiceContract interface{} `json:"invoice_contract"`
+	// The schedule that the customer will be invoiced for this commit.
+	InvoiceSchedule shared.SchedulePointInTime `json:"invoice_schedule"`
 	// This field can have the runtime type of [[]shared.CommitLedger],
 	// [[]shared.CreditLedger].
-	Ledger interface{} `json:"ledger,required"`
-	// This field can have the runtime type of [map[string]string].
-	CustomFields interface{}                          `json:"custom_fields,required"`
-	JSON         contractListBalancesResponseDataJSON `json:"-"`
-	union        ContractListBalancesResponseDataUnion
+	Ledger interface{} `json:"ledger"`
+	Name   string      `json:"name"`
+	// This field's availability is dependent on your client's configuration.
+	NetsuiteSalesOrderID string `json:"netsuite_sales_order_id"`
+	// If multiple credits or commits are applicable, the one with the lower priority
+	// will apply first.
+	Priority float64                                  `json:"priority"`
+	RateType ContractListBalancesResponseDataRateType `json:"rate_type"`
+	// This field can have the runtime type of [shared.CommitRolledOverFrom].
+	RolledOverFrom   interface{} `json:"rolled_over_from"`
+	RolloverFraction float64     `json:"rollover_fraction"`
+	// This field's availability is dependent on your client's configuration.
+	SalesforceOpportunityID string `json:"salesforce_opportunity_id"`
+	// Prevents the creation of duplicates. If a request to create a commit or credit
+	// is made with a uniqueness key that was previously used to create a commit or
+	// credit, a new record will not be created and the request will fail with a 409
+	// error.
+	UniquenessKey string                               `json:"uniqueness_key"`
+	JSON          contractListBalancesResponseDataJSON `json:"-"`
+	union         ContractListBalancesResponseDataUnion
 }
 
 // contractListBalancesResponseDataJSON contains the JSON metadata for the struct
 // [ContractListBalancesResponseData]
 type contractListBalancesResponseDataJSON struct {
 	ID                      apijson.Field
-	Contract                apijson.Field
-	Type                    apijson.Field
-	Name                    apijson.Field
-	Priority                apijson.Field
 	Product                 apijson.Field
+	Type                    apijson.Field
 	AccessSchedule          apijson.Field
-	InvoiceSchedule         apijson.Field
-	InvoiceContract         apijson.Field
-	RolledOverFrom          apijson.Field
-	Description             apijson.Field
-	RolloverFraction        apijson.Field
+	Amount                  apijson.Field
+	ApplicableContractIDs   apijson.Field
 	ApplicableProductIDs    apijson.Field
 	ApplicableProductTags   apijson.Field
-	ApplicableContractIDs   apijson.Field
-	NetsuiteSalesOrderID    apijson.Field
-	Amount                  apijson.Field
-	SalesforceOpportunityID apijson.Field
-	Ledger                  apijson.Field
+	Balance                 apijson.Field
+	Contract                apijson.Field
 	CustomFields            apijson.Field
+	Description             apijson.Field
+	InvoiceContract         apijson.Field
+	InvoiceSchedule         apijson.Field
+	Ledger                  apijson.Field
+	Name                    apijson.Field
+	NetsuiteSalesOrderID    apijson.Field
+	Priority                apijson.Field
+	RateType                apijson.Field
+	RolledOverFrom          apijson.Field
+	RolloverFraction        apijson.Field
+	SalesforceOpportunityID apijson.Field
+	UniquenessKey           apijson.Field
 	raw                     string
 	ExtraFields             map[string]apijson.Field
 }
@@ -840,6 +918,21 @@ func (r ContractListBalancesResponseDataType) IsKnown() bool {
 	return false
 }
 
+type ContractListBalancesResponseDataRateType string
+
+const (
+	ContractListBalancesResponseDataRateTypeCommitRate ContractListBalancesResponseDataRateType = "COMMIT_RATE"
+	ContractListBalancesResponseDataRateTypeListRate   ContractListBalancesResponseDataRateType = "LIST_RATE"
+)
+
+func (r ContractListBalancesResponseDataRateType) IsKnown() bool {
+	switch r {
+	case ContractListBalancesResponseDataRateTypeCommitRate, ContractListBalancesResponseDataRateTypeListRate:
+		return true
+	}
+	return false
+}
+
 type ContractGetRateScheduleResponse struct {
 	Data     []ContractGetRateScheduleResponseData `json:"data,required"`
 	NextPage string                                `json:"next_page,nullable"`
@@ -864,18 +957,21 @@ func (r contractGetRateScheduleResponseJSON) RawJSON() string {
 }
 
 type ContractGetRateScheduleResponseData struct {
-	Entitled            bool                                    `json:"entitled,required"`
-	ListRate            shared.Rate                             `json:"list_rate,required"`
-	ProductCustomFields map[string]string                       `json:"product_custom_fields,required"`
-	ProductID           string                                  `json:"product_id,required" format:"uuid"`
-	ProductName         string                                  `json:"product_name,required"`
-	ProductTags         []string                                `json:"product_tags,required"`
-	RateCardID          string                                  `json:"rate_card_id,required" format:"uuid"`
-	StartingAt          time.Time                               `json:"starting_at,required" format:"date-time"`
-	EndingBefore        time.Time                               `json:"ending_before" format:"date-time"`
-	OverrideRate        shared.Rate                             `json:"override_rate"`
-	PricingGroupValues  map[string]string                       `json:"pricing_group_values"`
-	JSON                contractGetRateScheduleResponseDataJSON `json:"-"`
+	Entitled            bool              `json:"entitled,required"`
+	ListRate            shared.Rate       `json:"list_rate,required"`
+	ProductCustomFields map[string]string `json:"product_custom_fields,required"`
+	ProductID           string            `json:"product_id,required" format:"uuid"`
+	ProductName         string            `json:"product_name,required"`
+	ProductTags         []string          `json:"product_tags,required"`
+	RateCardID          string            `json:"rate_card_id,required" format:"uuid"`
+	StartingAt          time.Time         `json:"starting_at,required" format:"date-time"`
+	// A distinct rate on the rate card. You can choose to use this rate rather than
+	// list rate when consuming a credit or commit.
+	CommitRate         ContractGetRateScheduleResponseDataCommitRate `json:"commit_rate"`
+	EndingBefore       time.Time                                     `json:"ending_before" format:"date-time"`
+	OverrideRate       shared.Rate                                   `json:"override_rate"`
+	PricingGroupValues map[string]string                             `json:"pricing_group_values"`
+	JSON               contractGetRateScheduleResponseDataJSON       `json:"-"`
 }
 
 // contractGetRateScheduleResponseDataJSON contains the JSON metadata for the
@@ -889,6 +985,7 @@ type contractGetRateScheduleResponseDataJSON struct {
 	ProductTags         apijson.Field
 	RateCardID          apijson.Field
 	StartingAt          apijson.Field
+	CommitRate          apijson.Field
 	EndingBefore        apijson.Field
 	OverrideRate        apijson.Field
 	PricingGroupValues  apijson.Field
@@ -902,6 +999,58 @@ func (r *ContractGetRateScheduleResponseData) UnmarshalJSON(data []byte) (err er
 
 func (r contractGetRateScheduleResponseDataJSON) RawJSON() string {
 	return r.raw
+}
+
+// A distinct rate on the rate card. You can choose to use this rate rather than
+// list rate when consuming a credit or commit.
+type ContractGetRateScheduleResponseDataCommitRate struct {
+	RateType ContractGetRateScheduleResponseDataCommitRateRateType `json:"rate_type,required"`
+	// Commit rate price. For FLAT rate_type, this must be >=0.
+	Price float64 `json:"price"`
+	// Only set for TIERED rate_type.
+	Tiers []shared.Tier                                     `json:"tiers"`
+	JSON  contractGetRateScheduleResponseDataCommitRateJSON `json:"-"`
+}
+
+// contractGetRateScheduleResponseDataCommitRateJSON contains the JSON metadata for
+// the struct [ContractGetRateScheduleResponseDataCommitRate]
+type contractGetRateScheduleResponseDataCommitRateJSON struct {
+	RateType    apijson.Field
+	Price       apijson.Field
+	Tiers       apijson.Field
+	raw         string
+	ExtraFields map[string]apijson.Field
+}
+
+func (r *ContractGetRateScheduleResponseDataCommitRate) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r contractGetRateScheduleResponseDataCommitRateJSON) RawJSON() string {
+	return r.raw
+}
+
+type ContractGetRateScheduleResponseDataCommitRateRateType string
+
+const (
+	ContractGetRateScheduleResponseDataCommitRateRateTypeFlatUppercase         ContractGetRateScheduleResponseDataCommitRateRateType = "FLAT"
+	ContractGetRateScheduleResponseDataCommitRateRateTypeFlat                  ContractGetRateScheduleResponseDataCommitRateRateType = "flat"
+	ContractGetRateScheduleResponseDataCommitRateRateTypePercentageUppercase   ContractGetRateScheduleResponseDataCommitRateRateType = "PERCENTAGE"
+	ContractGetRateScheduleResponseDataCommitRateRateTypePercentage            ContractGetRateScheduleResponseDataCommitRateRateType = "percentage"
+	ContractGetRateScheduleResponseDataCommitRateRateTypeSubscriptionUppercase ContractGetRateScheduleResponseDataCommitRateRateType = "SUBSCRIPTION"
+	ContractGetRateScheduleResponseDataCommitRateRateTypeSubscription          ContractGetRateScheduleResponseDataCommitRateRateType = "subscription"
+	ContractGetRateScheduleResponseDataCommitRateRateTypeTieredUppercase       ContractGetRateScheduleResponseDataCommitRateRateType = "TIERED"
+	ContractGetRateScheduleResponseDataCommitRateRateTypeTiered                ContractGetRateScheduleResponseDataCommitRateRateType = "tiered"
+	ContractGetRateScheduleResponseDataCommitRateRateTypeCustomUppercase       ContractGetRateScheduleResponseDataCommitRateRateType = "CUSTOM"
+	ContractGetRateScheduleResponseDataCommitRateRateTypeCustom                ContractGetRateScheduleResponseDataCommitRateRateType = "custom"
+)
+
+func (r ContractGetRateScheduleResponseDataCommitRateRateType) IsKnown() bool {
+	switch r {
+	case ContractGetRateScheduleResponseDataCommitRateRateTypeFlatUppercase, ContractGetRateScheduleResponseDataCommitRateRateTypeFlat, ContractGetRateScheduleResponseDataCommitRateRateTypePercentageUppercase, ContractGetRateScheduleResponseDataCommitRateRateTypePercentage, ContractGetRateScheduleResponseDataCommitRateRateTypeSubscriptionUppercase, ContractGetRateScheduleResponseDataCommitRateRateTypeSubscription, ContractGetRateScheduleResponseDataCommitRateRateTypeTieredUppercase, ContractGetRateScheduleResponseDataCommitRateRateTypeTiered, ContractGetRateScheduleResponseDataCommitRateRateTypeCustomUppercase, ContractGetRateScheduleResponseDataCommitRateRateTypeCustom:
+		return true
+	}
+	return false
 }
 
 type ContractScheduleProServicesInvoiceResponse struct {
@@ -950,7 +1099,7 @@ type ContractNewParams struct {
 	CustomerID param.Field[string] `json:"customer_id,required" format:"uuid"`
 	// inclusive contract start time
 	StartingAt param.Field[time.Time] `json:"starting_at,required" format:"date-time"`
-	// This field's availability is dependent on your client's configuration.
+	// The billing provider configuration associated with a contract.
 	BillingProviderConfiguration param.Field[ContractNewParamsBillingProviderConfiguration] `json:"billing_provider_configuration"`
 	Commits                      param.Field[[]ContractNewParamsCommit]                     `json:"commits"`
 	Credits                      param.Field[[]ContractNewParamsCredit]                     `json:"credits"`
@@ -980,6 +1129,12 @@ type ContractNewParams struct {
 	// This field's availability is dependent on your client's configuration.
 	SalesforceOpportunityID param.Field[string]                             `json:"salesforce_opportunity_id"`
 	ScheduledCharges        param.Field[[]ContractNewParamsScheduledCharge] `json:"scheduled_charges"`
+	// Determines which scheduled and commit charges to consolidate onto the Contract's
+	// usage invoice. The charge's `timestamp` must match the usage invoice's
+	// `ending_before` date for consolidation to occur. This field cannot be modified
+	// after a Contract has been created. If this field is omitted, charges will appear
+	// on a separate invoice from usage charges.
+	ScheduledChargesOnUsageInvoices param.Field[ContractNewParamsScheduledChargesOnUsageInvoices] `json:"scheduled_charges_on_usage_invoices"`
 	// This field's availability is dependent on your client's configuration.
 	TotalContractValue param.Field[float64]                     `json:"total_contract_value"`
 	Transition         param.Field[ContractNewParamsTransition] `json:"transition"`
@@ -995,7 +1150,7 @@ func (r ContractNewParams) MarshalJSON() (data []byte, err error) {
 	return apijson.MarshalRoot(r)
 }
 
-// This field's availability is dependent on your client's configuration.
+// The billing provider configuration associated with a contract.
 type ContractNewParamsBillingProviderConfiguration struct {
 	BillingProvider param.Field[ContractNewParamsBillingProviderConfigurationBillingProvider] `json:"billing_provider"`
 	// The Metronome ID of the billing provider configuration
@@ -1071,9 +1226,13 @@ type ContractNewParamsCommit struct {
 	NetsuiteSalesOrderID param.Field[string] `json:"netsuite_sales_order_id"`
 	// If multiple commits are applicable, the one with the lower priority will apply
 	// first.
-	Priority param.Field[float64] `json:"priority"`
+	Priority param.Field[float64]                          `json:"priority"`
+	RateType param.Field[ContractNewParamsCommitsRateType] `json:"rate_type"`
 	// Fraction of unused segments that will be rolled over. Must be between 0 and 1.
 	RolloverFraction param.Field[float64] `json:"rollover_fraction"`
+	// A temporary ID for the commit that can be used to reference the commit for
+	// commit specific overrides.
+	TemporaryID param.Field[string] `json:"temporary_id"`
 }
 
 func (r ContractNewParamsCommit) MarshalJSON() (data []byte, err error) {
@@ -1100,7 +1259,8 @@ func (r ContractNewParamsCommitsType) IsKnown() bool {
 // total.
 type ContractNewParamsCommitsAccessSchedule struct {
 	ScheduleItems param.Field[[]ContractNewParamsCommitsAccessScheduleScheduleItem] `json:"schedule_items,required"`
-	CreditTypeID  param.Field[string]                                               `json:"credit_type_id" format:"uuid"`
+	// Defaults to USD (cents) if not passed
+	CreditTypeID param.Field[string] `json:"credit_type_id" format:"uuid"`
 }
 
 func (r ContractNewParamsCommitsAccessSchedule) MarshalJSON() (data []byte, err error) {
@@ -1124,7 +1284,7 @@ func (r ContractNewParamsCommitsAccessScheduleScheduleItem) MarshalJSON() (data 
 // amount. Optional for "PREPAID" commits: if not provided, this will be a
 // "complimentary" commit with no invoice.
 type ContractNewParamsCommitsInvoiceSchedule struct {
-	// Defaults to USD if not passed. Only USD is supported at this time.
+	// Defaults to USD (cents) if not passed.
 	CreditTypeID param.Field[string] `json:"credit_type_id" format:"uuid"`
 	// Enter the unit price and quantity for the charge or instead only send the
 	// amount. If amount is sent, the unit price is assumed to be the amount and
@@ -1220,6 +1380,23 @@ func (r ContractNewParamsCommitsInvoiceScheduleScheduleItem) MarshalJSON() (data
 	return apijson.MarshalRoot(r)
 }
 
+type ContractNewParamsCommitsRateType string
+
+const (
+	ContractNewParamsCommitsRateTypeCommitRateUppercase ContractNewParamsCommitsRateType = "COMMIT_RATE"
+	ContractNewParamsCommitsRateTypeCommitRate          ContractNewParamsCommitsRateType = "commit_rate"
+	ContractNewParamsCommitsRateTypeListRateUppercase   ContractNewParamsCommitsRateType = "LIST_RATE"
+	ContractNewParamsCommitsRateTypeListRate            ContractNewParamsCommitsRateType = "list_rate"
+)
+
+func (r ContractNewParamsCommitsRateType) IsKnown() bool {
+	switch r {
+	case ContractNewParamsCommitsRateTypeCommitRateUppercase, ContractNewParamsCommitsRateTypeCommitRate, ContractNewParamsCommitsRateTypeListRateUppercase, ContractNewParamsCommitsRateTypeListRate:
+		return true
+	}
+	return false
+}
+
 type ContractNewParamsCredit struct {
 	// Schedule for distributing the credit to the customer.
 	AccessSchedule param.Field[ContractNewParamsCreditsAccessSchedule] `json:"access_schedule,required"`
@@ -1239,7 +1416,8 @@ type ContractNewParamsCredit struct {
 	NetsuiteSalesOrderID param.Field[string] `json:"netsuite_sales_order_id"`
 	// If multiple credits are applicable, the one with the lower priority will apply
 	// first.
-	Priority param.Field[float64] `json:"priority"`
+	Priority param.Field[float64]                          `json:"priority"`
+	RateType param.Field[ContractNewParamsCreditsRateType] `json:"rate_type"`
 }
 
 func (r ContractNewParamsCredit) MarshalJSON() (data []byte, err error) {
@@ -1249,7 +1427,8 @@ func (r ContractNewParamsCredit) MarshalJSON() (data []byte, err error) {
 // Schedule for distributing the credit to the customer.
 type ContractNewParamsCreditsAccessSchedule struct {
 	ScheduleItems param.Field[[]ContractNewParamsCreditsAccessScheduleScheduleItem] `json:"schedule_items,required"`
-	CreditTypeID  param.Field[string]                                               `json:"credit_type_id" format:"uuid"`
+	// Defaults to USD (cents) if not passed
+	CreditTypeID param.Field[string] `json:"credit_type_id" format:"uuid"`
 }
 
 func (r ContractNewParamsCreditsAccessSchedule) MarshalJSON() (data []byte, err error) {
@@ -1268,10 +1447,28 @@ func (r ContractNewParamsCreditsAccessScheduleScheduleItem) MarshalJSON() (data 
 	return apijson.MarshalRoot(r)
 }
 
+type ContractNewParamsCreditsRateType string
+
+const (
+	ContractNewParamsCreditsRateTypeCommitRateUppercase ContractNewParamsCreditsRateType = "COMMIT_RATE"
+	ContractNewParamsCreditsRateTypeCommitRate          ContractNewParamsCreditsRateType = "commit_rate"
+	ContractNewParamsCreditsRateTypeListRateUppercase   ContractNewParamsCreditsRateType = "LIST_RATE"
+	ContractNewParamsCreditsRateTypeListRate            ContractNewParamsCreditsRateType = "list_rate"
+)
+
+func (r ContractNewParamsCreditsRateType) IsKnown() bool {
+	switch r {
+	case ContractNewParamsCreditsRateTypeCommitRateUppercase, ContractNewParamsCreditsRateTypeCommitRate, ContractNewParamsCreditsRateTypeListRateUppercase, ContractNewParamsCreditsRateTypeListRate:
+		return true
+	}
+	return false
+}
+
 type ContractNewParamsDiscount struct {
 	ProductID param.Field[string] `json:"product_id,required" format:"uuid"`
 	// Must provide either schedule_items or recurring_schedule.
-	Schedule param.Field[ContractNewParamsDiscountsSchedule] `json:"schedule,required"`
+	Schedule     param.Field[ContractNewParamsDiscountsSchedule] `json:"schedule,required"`
+	CustomFields param.Field[map[string]string]                  `json:"custom_fields"`
 	// displayed on invoices
 	Name param.Field[string] `json:"name"`
 	// This field's availability is dependent on your client's configuration.
@@ -1284,7 +1481,7 @@ func (r ContractNewParamsDiscount) MarshalJSON() (data []byte, err error) {
 
 // Must provide either schedule_items or recurring_schedule.
 type ContractNewParamsDiscountsSchedule struct {
-	// Defaults to USD if not passed. Only USD is supported at this time.
+	// Defaults to USD (cents) if not passed.
 	CreditTypeID param.Field[string] `json:"credit_type_id" format:"uuid"`
 	// Enter the unit price and quantity for the charge or instead only send the
 	// amount. If amount is sent, the unit price is assumed to be the amount and
@@ -1402,11 +1599,17 @@ func (r ContractNewParamsMultiplierOverridePrioritization) IsKnown() bool {
 type ContractNewParamsOverride struct {
 	// RFC 3339 timestamp indicating when the override will start applying (inclusive)
 	StartingAt param.Field[time.Time] `json:"starting_at,required" format:"date-time"`
-	// tags identifying products whose rates are being overridden
+	// tags identifying products whose rates are being overridden. Cannot be used in
+	// conjunction with override_specifiers.
 	ApplicableProductTags param.Field[[]string] `json:"applicable_product_tags"`
 	// RFC 3339 timestamp indicating when the override will stop applying (exclusive)
 	EndingBefore param.Field[time.Time] `json:"ending_before" format:"date-time"`
 	Entitled     param.Field[bool]      `json:"entitled"`
+	// Indicates whether the override should only apply to commits. Defaults to
+	// `false`. If `true`, you can specify relevant commits in `override_specifiers` by
+	// passing `commit_ids`. if you do not specify `commit_ids`, then the override will
+	// apply when consuming any prepaid or postpaid commit.
+	IsCommitSpecific param.Field[bool] `json:"is_commit_specific"`
 	// Required for MULTIPLIER type. Must be >=0.
 	Multiplier param.Field[float64] `json:"multiplier"`
 	// Cannot be used in conjunction with product_id or applicable_product_tags. If
@@ -1419,8 +1622,13 @@ type ContractNewParamsOverride struct {
 	// and multiplier overrides are prioritized by their priority value (lowest first).
 	// Must be > 0.
 	Priority param.Field[float64] `json:"priority"`
-	// ID of the product whose rate is being overridden
+	// ID of the product whose rate is being overridden. Cannot be used in conjunction
+	// with override_specifiers.
 	ProductID param.Field[string] `json:"product_id" format:"uuid"`
+	// Indicates whether the override applies to commit rates or list rates. Can only
+	// be used for overrides that have `is_commit_specific` set to `true`. Defaults to
+	// `"LIST_RATE"`.
+	Target param.Field[ContractNewParamsOverridesTarget] `json:"target"`
 	// Required for TIERED type. Must have at least one tier.
 	Tiers param.Field[[]ContractNewParamsOverridesTier] `json:"tiers"`
 	// Overwrites are prioritized over multipliers and tiered overrides.
@@ -1432,6 +1640,11 @@ func (r ContractNewParamsOverride) MarshalJSON() (data []byte, err error) {
 }
 
 type ContractNewParamsOverridesOverrideSpecifier struct {
+	// Can only be used for commit specific overrides. Must be used in conjunction with
+	// one of product_id, product_tags, pricing_group_values, or
+	// presentation_group_values. If provided, the override will only apply to the
+	// specified commits. If not provided, the override will apply to all commits.
+	CommitIDs param.Field[[]string] `json:"commit_ids"`
 	// A map of group names to values. The override will only apply to line items with
 	// the specified presentation group values. Can only be used for multiplier
 	// overrides.
@@ -1457,7 +1670,8 @@ type ContractNewParamsOverridesOverwriteRate struct {
 	// Only set for CUSTOM rate_type. This field is interpreted by custom rate
 	// processors.
 	CustomRate param.Field[map[string]interface{}] `json:"custom_rate"`
-	// Default proration configuration. Only valid for SUBSCRIPTION rate_type.
+	// Default proration configuration. Only valid for SUBSCRIPTION rate_type. Must be
+	// set to true.
 	IsProrated param.Field[bool] `json:"is_prorated"`
 	// Default price. For FLAT rate_type, this must be >=0. For PERCENTAGE rate_type,
 	// this is a decimal fraction, e.g. use 0.1 for 10%; this must be >=0 and <=1.
@@ -1485,6 +1699,26 @@ const (
 func (r ContractNewParamsOverridesOverwriteRateRateType) IsKnown() bool {
 	switch r {
 	case ContractNewParamsOverridesOverwriteRateRateTypeFlat, ContractNewParamsOverridesOverwriteRateRateTypePercentage, ContractNewParamsOverridesOverwriteRateRateTypeSubscription, ContractNewParamsOverridesOverwriteRateRateTypeTiered, ContractNewParamsOverridesOverwriteRateRateTypeCustom:
+		return true
+	}
+	return false
+}
+
+// Indicates whether the override applies to commit rates or list rates. Can only
+// be used for overrides that have `is_commit_specific` set to `true`. Defaults to
+// `"LIST_RATE"`.
+type ContractNewParamsOverridesTarget string
+
+const (
+	ContractNewParamsOverridesTargetCommitRateUppercase ContractNewParamsOverridesTarget = "COMMIT_RATE"
+	ContractNewParamsOverridesTargetCommitRate          ContractNewParamsOverridesTarget = "commit_rate"
+	ContractNewParamsOverridesTargetListRateUppercase   ContractNewParamsOverridesTarget = "LIST_RATE"
+	ContractNewParamsOverridesTargetListRate            ContractNewParamsOverridesTarget = "list_rate"
+)
+
+func (r ContractNewParamsOverridesTarget) IsKnown() bool {
+	switch r {
+	case ContractNewParamsOverridesTargetCommitRateUppercase, ContractNewParamsOverridesTargetCommitRate, ContractNewParamsOverridesTargetListRateUppercase, ContractNewParamsOverridesTargetListRate:
 		return true
 	}
 	return false
@@ -1607,7 +1841,7 @@ func (r ContractNewParamsScheduledCharge) MarshalJSON() (data []byte, err error)
 
 // Must provide either schedule_items or recurring_schedule.
 type ContractNewParamsScheduledChargesSchedule struct {
-	// Defaults to USD if not passed. Only USD is supported at this time.
+	// Defaults to USD (cents) if not passed.
 	CreditTypeID param.Field[string] `json:"credit_type_id" format:"uuid"`
 	// Enter the unit price and quantity for the charge or instead only send the
 	// amount. If amount is sent, the unit price is assumed to be the amount and
@@ -1703,6 +1937,25 @@ func (r ContractNewParamsScheduledChargesScheduleScheduleItem) MarshalJSON() (da
 	return apijson.MarshalRoot(r)
 }
 
+// Determines which scheduled and commit charges to consolidate onto the Contract's
+// usage invoice. The charge's `timestamp` must match the usage invoice's
+// `ending_before` date for consolidation to occur. This field cannot be modified
+// after a Contract has been created. If this field is omitted, charges will appear
+// on a separate invoice from usage charges.
+type ContractNewParamsScheduledChargesOnUsageInvoices string
+
+const (
+	ContractNewParamsScheduledChargesOnUsageInvoicesAll ContractNewParamsScheduledChargesOnUsageInvoices = "ALL"
+)
+
+func (r ContractNewParamsScheduledChargesOnUsageInvoices) IsKnown() bool {
+	switch r {
+	case ContractNewParamsScheduledChargesOnUsageInvoicesAll:
+		return true
+	}
+	return false
+}
+
 type ContractNewParamsTransition struct {
 	FromContractID param.Field[string] `json:"from_contract_id,required" format:"uuid"`
 	// This field's available values may vary based on your client's configuration.
@@ -1759,6 +2012,12 @@ func (r ContractNewParamsTransitionFutureInvoiceBehaviorTrueup) IsKnown() bool {
 
 type ContractNewParamsUsageStatementSchedule struct {
 	Frequency param.Field[ContractNewParamsUsageStatementScheduleFrequency] `json:"frequency,required"`
+	// Required when using CUSTOM_DATE. This option lets you set a historical billing
+	// anchor date, aligning future billing cycles with a chosen cadence. For example,
+	// if a contract starts on 2024-09-15 and you set the anchor date to 2024-09-10
+	// with a MONTHLY frequency, the first usage statement will cover 09-15 to 10-10.
+	// Subsequent statements will follow the 10th of each month.
+	BillingAnchorDate param.Field[time.Time] `json:"billing_anchor_date" format:"date-time"`
 	// If not provided, defaults to the first day of the month.
 	Day param.Field[ContractNewParamsUsageStatementScheduleDay] `json:"day"`
 	// The date Metronome should start generating usage invoices. If unspecified,
@@ -1777,11 +2036,12 @@ type ContractNewParamsUsageStatementScheduleFrequency string
 const (
 	ContractNewParamsUsageStatementScheduleFrequencyMonthly   ContractNewParamsUsageStatementScheduleFrequency = "MONTHLY"
 	ContractNewParamsUsageStatementScheduleFrequencyQuarterly ContractNewParamsUsageStatementScheduleFrequency = "QUARTERLY"
+	ContractNewParamsUsageStatementScheduleFrequencyAnnual    ContractNewParamsUsageStatementScheduleFrequency = "ANNUAL"
 )
 
 func (r ContractNewParamsUsageStatementScheduleFrequency) IsKnown() bool {
 	switch r {
-	case ContractNewParamsUsageStatementScheduleFrequencyMonthly, ContractNewParamsUsageStatementScheduleFrequencyQuarterly:
+	case ContractNewParamsUsageStatementScheduleFrequencyMonthly, ContractNewParamsUsageStatementScheduleFrequencyQuarterly, ContractNewParamsUsageStatementScheduleFrequencyAnnual:
 		return true
 	}
 	return false
@@ -1791,13 +2051,15 @@ func (r ContractNewParamsUsageStatementScheduleFrequency) IsKnown() bool {
 type ContractNewParamsUsageStatementScheduleDay string
 
 const (
-	ContractNewParamsUsageStatementScheduleDayFirstOfMonth  ContractNewParamsUsageStatementScheduleDay = "FIRST_OF_MONTH"
-	ContractNewParamsUsageStatementScheduleDayContractStart ContractNewParamsUsageStatementScheduleDay = "CONTRACT_START"
+	ContractNewParamsUsageStatementScheduleDayFirstOfMonth        ContractNewParamsUsageStatementScheduleDay = "FIRST_OF_MONTH"
+	ContractNewParamsUsageStatementScheduleDayContractStart       ContractNewParamsUsageStatementScheduleDay = "CONTRACT_START"
+	ContractNewParamsUsageStatementScheduleDayCustomDateUppercase ContractNewParamsUsageStatementScheduleDay = "CUSTOM_DATE"
+	ContractNewParamsUsageStatementScheduleDayCustomDate          ContractNewParamsUsageStatementScheduleDay = "custom_date"
 )
 
 func (r ContractNewParamsUsageStatementScheduleDay) IsKnown() bool {
 	switch r {
-	case ContractNewParamsUsageStatementScheduleDayFirstOfMonth, ContractNewParamsUsageStatementScheduleDayContractStart:
+	case ContractNewParamsUsageStatementScheduleDayFirstOfMonth, ContractNewParamsUsageStatementScheduleDayContractStart, ContractNewParamsUsageStatementScheduleDayCustomDateUppercase, ContractNewParamsUsageStatementScheduleDayCustomDate:
 		return true
 	}
 	return false
@@ -1806,6 +2068,9 @@ func (r ContractNewParamsUsageStatementScheduleDay) IsKnown() bool {
 type ContractGetParams struct {
 	ContractID param.Field[string] `json:"contract_id,required" format:"uuid"`
 	CustomerID param.Field[string] `json:"customer_id,required" format:"uuid"`
+	// Include the balance of credits and commits in the response. Setting this flag
+	// may cause the query to be slower.
+	IncludeBalance param.Field[bool] `json:"include_balance"`
 	// Include commit ledgers in the response. Setting this flag may cause the query to
 	// be slower.
 	IncludeLedgers param.Field[bool] `json:"include_ledgers"`
@@ -1823,6 +2088,9 @@ type ContractListParams struct {
 	CoveringDate param.Field[time.Time] `json:"covering_date" format:"date-time"`
 	// Include archived contracts in the response
 	IncludeArchived param.Field[bool] `json:"include_archived"`
+	// Include the balance of credits and commits in the response. Setting this flag
+	// may cause the query to be slower.
+	IncludeBalance param.Field[bool] `json:"include_balance"`
 	// Include commit ledgers in the response. Setting this flag may cause the query to
 	// be slower.
 	IncludeLedgers param.Field[bool] `json:"include_ledgers"`
@@ -1917,9 +2185,13 @@ type ContractAmendParamsCommit struct {
 	NetsuiteSalesOrderID param.Field[string] `json:"netsuite_sales_order_id"`
 	// If multiple commits are applicable, the one with the lower priority will apply
 	// first.
-	Priority param.Field[float64] `json:"priority"`
+	Priority param.Field[float64]                            `json:"priority"`
+	RateType param.Field[ContractAmendParamsCommitsRateType] `json:"rate_type"`
 	// Fraction of unused segments that will be rolled over. Must be between 0 and 1.
 	RolloverFraction param.Field[float64] `json:"rollover_fraction"`
+	// A temporary ID for the commit that can be used to reference the commit for
+	// commit specific overrides.
+	TemporaryID param.Field[string] `json:"temporary_id"`
 }
 
 func (r ContractAmendParamsCommit) MarshalJSON() (data []byte, err error) {
@@ -1946,7 +2218,8 @@ func (r ContractAmendParamsCommitsType) IsKnown() bool {
 // total.
 type ContractAmendParamsCommitsAccessSchedule struct {
 	ScheduleItems param.Field[[]ContractAmendParamsCommitsAccessScheduleScheduleItem] `json:"schedule_items,required"`
-	CreditTypeID  param.Field[string]                                                 `json:"credit_type_id" format:"uuid"`
+	// Defaults to USD (cents) if not passed
+	CreditTypeID param.Field[string] `json:"credit_type_id" format:"uuid"`
 }
 
 func (r ContractAmendParamsCommitsAccessSchedule) MarshalJSON() (data []byte, err error) {
@@ -1970,7 +2243,7 @@ func (r ContractAmendParamsCommitsAccessScheduleScheduleItem) MarshalJSON() (dat
 // amount. Optional for "PREPAID" commits: if not provided, this will be a
 // "complimentary" commit with no invoice.
 type ContractAmendParamsCommitsInvoiceSchedule struct {
-	// Defaults to USD if not passed. Only USD is supported at this time.
+	// Defaults to USD (cents) if not passed.
 	CreditTypeID param.Field[string] `json:"credit_type_id" format:"uuid"`
 	// Enter the unit price and quantity for the charge or instead only send the
 	// amount. If amount is sent, the unit price is assumed to be the amount and
@@ -2066,6 +2339,23 @@ func (r ContractAmendParamsCommitsInvoiceScheduleScheduleItem) MarshalJSON() (da
 	return apijson.MarshalRoot(r)
 }
 
+type ContractAmendParamsCommitsRateType string
+
+const (
+	ContractAmendParamsCommitsRateTypeCommitRateUppercase ContractAmendParamsCommitsRateType = "COMMIT_RATE"
+	ContractAmendParamsCommitsRateTypeCommitRate          ContractAmendParamsCommitsRateType = "commit_rate"
+	ContractAmendParamsCommitsRateTypeListRateUppercase   ContractAmendParamsCommitsRateType = "LIST_RATE"
+	ContractAmendParamsCommitsRateTypeListRate            ContractAmendParamsCommitsRateType = "list_rate"
+)
+
+func (r ContractAmendParamsCommitsRateType) IsKnown() bool {
+	switch r {
+	case ContractAmendParamsCommitsRateTypeCommitRateUppercase, ContractAmendParamsCommitsRateTypeCommitRate, ContractAmendParamsCommitsRateTypeListRateUppercase, ContractAmendParamsCommitsRateTypeListRate:
+		return true
+	}
+	return false
+}
+
 type ContractAmendParamsCredit struct {
 	// Schedule for distributing the credit to the customer.
 	AccessSchedule param.Field[ContractAmendParamsCreditsAccessSchedule] `json:"access_schedule,required"`
@@ -2085,7 +2375,8 @@ type ContractAmendParamsCredit struct {
 	NetsuiteSalesOrderID param.Field[string] `json:"netsuite_sales_order_id"`
 	// If multiple credits are applicable, the one with the lower priority will apply
 	// first.
-	Priority param.Field[float64] `json:"priority"`
+	Priority param.Field[float64]                            `json:"priority"`
+	RateType param.Field[ContractAmendParamsCreditsRateType] `json:"rate_type"`
 }
 
 func (r ContractAmendParamsCredit) MarshalJSON() (data []byte, err error) {
@@ -2095,7 +2386,8 @@ func (r ContractAmendParamsCredit) MarshalJSON() (data []byte, err error) {
 // Schedule for distributing the credit to the customer.
 type ContractAmendParamsCreditsAccessSchedule struct {
 	ScheduleItems param.Field[[]ContractAmendParamsCreditsAccessScheduleScheduleItem] `json:"schedule_items,required"`
-	CreditTypeID  param.Field[string]                                                 `json:"credit_type_id" format:"uuid"`
+	// Defaults to USD (cents) if not passed
+	CreditTypeID param.Field[string] `json:"credit_type_id" format:"uuid"`
 }
 
 func (r ContractAmendParamsCreditsAccessSchedule) MarshalJSON() (data []byte, err error) {
@@ -2114,10 +2406,28 @@ func (r ContractAmendParamsCreditsAccessScheduleScheduleItem) MarshalJSON() (dat
 	return apijson.MarshalRoot(r)
 }
 
+type ContractAmendParamsCreditsRateType string
+
+const (
+	ContractAmendParamsCreditsRateTypeCommitRateUppercase ContractAmendParamsCreditsRateType = "COMMIT_RATE"
+	ContractAmendParamsCreditsRateTypeCommitRate          ContractAmendParamsCreditsRateType = "commit_rate"
+	ContractAmendParamsCreditsRateTypeListRateUppercase   ContractAmendParamsCreditsRateType = "LIST_RATE"
+	ContractAmendParamsCreditsRateTypeListRate            ContractAmendParamsCreditsRateType = "list_rate"
+)
+
+func (r ContractAmendParamsCreditsRateType) IsKnown() bool {
+	switch r {
+	case ContractAmendParamsCreditsRateTypeCommitRateUppercase, ContractAmendParamsCreditsRateTypeCommitRate, ContractAmendParamsCreditsRateTypeListRateUppercase, ContractAmendParamsCreditsRateTypeListRate:
+		return true
+	}
+	return false
+}
+
 type ContractAmendParamsDiscount struct {
 	ProductID param.Field[string] `json:"product_id,required" format:"uuid"`
 	// Must provide either schedule_items or recurring_schedule.
-	Schedule param.Field[ContractAmendParamsDiscountsSchedule] `json:"schedule,required"`
+	Schedule     param.Field[ContractAmendParamsDiscountsSchedule] `json:"schedule,required"`
+	CustomFields param.Field[map[string]string]                    `json:"custom_fields"`
 	// displayed on invoices
 	Name param.Field[string] `json:"name"`
 	// This field's availability is dependent on your client's configuration.
@@ -2130,7 +2440,7 @@ func (r ContractAmendParamsDiscount) MarshalJSON() (data []byte, err error) {
 
 // Must provide either schedule_items or recurring_schedule.
 type ContractAmendParamsDiscountsSchedule struct {
-	// Defaults to USD if not passed. Only USD is supported at this time.
+	// Defaults to USD (cents) if not passed.
 	CreditTypeID param.Field[string] `json:"credit_type_id" format:"uuid"`
 	// Enter the unit price and quantity for the charge or instead only send the
 	// amount. If amount is sent, the unit price is assumed to be the amount and
@@ -2229,11 +2539,17 @@ func (r ContractAmendParamsDiscountsScheduleScheduleItem) MarshalJSON() (data []
 type ContractAmendParamsOverride struct {
 	// RFC 3339 timestamp indicating when the override will start applying (inclusive)
 	StartingAt param.Field[time.Time] `json:"starting_at,required" format:"date-time"`
-	// tags identifying products whose rates are being overridden
+	// tags identifying products whose rates are being overridden. Cannot be used in
+	// conjunction with override_specifiers.
 	ApplicableProductTags param.Field[[]string] `json:"applicable_product_tags"`
 	// RFC 3339 timestamp indicating when the override will stop applying (exclusive)
 	EndingBefore param.Field[time.Time] `json:"ending_before" format:"date-time"`
 	Entitled     param.Field[bool]      `json:"entitled"`
+	// Indicates whether the override should only apply to commits. Defaults to
+	// `false`. If `true`, you can specify relevant commits in `override_specifiers` by
+	// passing `commit_ids`. if you do not specify `commit_ids`, then the override will
+	// apply when consuming any prepaid or postpaid commit.
+	IsCommitSpecific param.Field[bool] `json:"is_commit_specific"`
 	// Required for MULTIPLIER type. Must be >=0.
 	Multiplier param.Field[float64] `json:"multiplier"`
 	// Cannot be used in conjunction with product_id or applicable_product_tags. If
@@ -2246,8 +2562,13 @@ type ContractAmendParamsOverride struct {
 	// and multiplier overrides are prioritized by their priority value (lowest first).
 	// Must be > 0.
 	Priority param.Field[float64] `json:"priority"`
-	// ID of the product whose rate is being overridden
+	// ID of the product whose rate is being overridden. Cannot be used in conjunction
+	// with override_specifiers.
 	ProductID param.Field[string] `json:"product_id" format:"uuid"`
+	// Indicates whether the override applies to commit rates or list rates. Can only
+	// be used for overrides that have `is_commit_specific` set to `true`. Defaults to
+	// `"LIST_RATE"`.
+	Target param.Field[ContractAmendParamsOverridesTarget] `json:"target"`
 	// Required for TIERED type. Must have at least one tier.
 	Tiers param.Field[[]ContractAmendParamsOverridesTier] `json:"tiers"`
 	// Overwrites are prioritized over multipliers and tiered overrides.
@@ -2259,6 +2580,11 @@ func (r ContractAmendParamsOverride) MarshalJSON() (data []byte, err error) {
 }
 
 type ContractAmendParamsOverridesOverrideSpecifier struct {
+	// Can only be used for commit specific overrides. Must be used in conjunction with
+	// one of product_id, product_tags, pricing_group_values, or
+	// presentation_group_values. If provided, the override will only apply to the
+	// specified commits. If not provided, the override will apply to all commits.
+	CommitIDs param.Field[[]string] `json:"commit_ids"`
 	// A map of group names to values. The override will only apply to line items with
 	// the specified presentation group values. Can only be used for multiplier
 	// overrides.
@@ -2284,7 +2610,8 @@ type ContractAmendParamsOverridesOverwriteRate struct {
 	// Only set for CUSTOM rate_type. This field is interpreted by custom rate
 	// processors.
 	CustomRate param.Field[map[string]interface{}] `json:"custom_rate"`
-	// Default proration configuration. Only valid for SUBSCRIPTION rate_type.
+	// Default proration configuration. Only valid for SUBSCRIPTION rate_type. Must be
+	// set to true.
 	IsProrated param.Field[bool] `json:"is_prorated"`
 	// Default price. For FLAT rate_type, this must be >=0. For PERCENTAGE rate_type,
 	// this is a decimal fraction, e.g. use 0.1 for 10%; this must be >=0 and <=1.
@@ -2312,6 +2639,26 @@ const (
 func (r ContractAmendParamsOverridesOverwriteRateRateType) IsKnown() bool {
 	switch r {
 	case ContractAmendParamsOverridesOverwriteRateRateTypeFlat, ContractAmendParamsOverridesOverwriteRateRateTypePercentage, ContractAmendParamsOverridesOverwriteRateRateTypeSubscription, ContractAmendParamsOverridesOverwriteRateRateTypeTiered, ContractAmendParamsOverridesOverwriteRateRateTypeCustom:
+		return true
+	}
+	return false
+}
+
+// Indicates whether the override applies to commit rates or list rates. Can only
+// be used for overrides that have `is_commit_specific` set to `true`. Defaults to
+// `"LIST_RATE"`.
+type ContractAmendParamsOverridesTarget string
+
+const (
+	ContractAmendParamsOverridesTargetCommitRateUppercase ContractAmendParamsOverridesTarget = "COMMIT_RATE"
+	ContractAmendParamsOverridesTargetCommitRate          ContractAmendParamsOverridesTarget = "commit_rate"
+	ContractAmendParamsOverridesTargetListRateUppercase   ContractAmendParamsOverridesTarget = "LIST_RATE"
+	ContractAmendParamsOverridesTargetListRate            ContractAmendParamsOverridesTarget = "list_rate"
+)
+
+func (r ContractAmendParamsOverridesTarget) IsKnown() bool {
+	switch r {
+	case ContractAmendParamsOverridesTargetCommitRateUppercase, ContractAmendParamsOverridesTargetCommitRate, ContractAmendParamsOverridesTargetListRateUppercase, ContractAmendParamsOverridesTargetListRate:
 		return true
 	}
 	return false
@@ -2435,7 +2782,7 @@ func (r ContractAmendParamsScheduledCharge) MarshalJSON() (data []byte, err erro
 
 // Must provide either schedule_items or recurring_schedule.
 type ContractAmendParamsScheduledChargesSchedule struct {
-	// Defaults to USD if not passed. Only USD is supported at this time.
+	// Defaults to USD (cents) if not passed.
 	CreditTypeID param.Field[string] `json:"credit_type_id" format:"uuid"`
 	// Enter the unit price and quantity for the charge or instead only send the
 	// amount. If amount is sent, the unit price is assumed to be the amount and
@@ -2636,6 +2983,9 @@ type ContractListBalancesParams struct {
 	EffectiveBefore param.Field[time.Time] `json:"effective_before" format:"date-time"`
 	// Include credits from archived contracts.
 	IncludeArchived param.Field[bool] `json:"include_archived"`
+	// Include the balance of credits and commits in the response. Setting this flag
+	// may cause the query to be slower.
+	IncludeBalance param.Field[bool] `json:"include_balance"`
 	// Include balances on the contract level.
 	IncludeContractBalances param.Field[bool] `json:"include_contract_balances"`
 	// Include ledgers in the response. Setting this flag may cause the query to be
@@ -2758,6 +3108,11 @@ type ContractUpdateEndDateParams struct {
 	ContractID param.Field[string] `json:"contract_id,required" format:"uuid"`
 	// ID of the customer whose contract is to be updated
 	CustomerID param.Field[string] `json:"customer_id,required" format:"uuid"`
+	// If true, allows setting the contract end date earlier than the end_timestamp of
+	// existing finalized invoices. Finalized invoices will be unchanged; if you want
+	// to incorporate the new end date, you can void and regenerate finalized usage
+	// invoices. Defaults to true.
+	AllowEndingBeforeFinalizedInvoice param.Field[bool] `json:"allow_ending_before_finalized_invoice"`
 	// RFC 3339 timestamp indicating when the contract will end (exclusive). If not
 	// provided, the contract will be updated to be open-ended.
 	EndingBefore param.Field[time.Time] `json:"ending_before" format:"date-time"`

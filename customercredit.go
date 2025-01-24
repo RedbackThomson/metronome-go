@@ -145,9 +145,15 @@ type CustomerCreditNewParams struct {
 	// displayed on invoices
 	Name param.Field[string] `json:"name"`
 	// This field's availability is dependent on your client's configuration.
-	NetsuiteSalesOrderID param.Field[string] `json:"netsuite_sales_order_id"`
+	NetsuiteSalesOrderID param.Field[string]                          `json:"netsuite_sales_order_id"`
+	RateType             param.Field[CustomerCreditNewParamsRateType] `json:"rate_type"`
 	// This field's availability is dependent on your client's configuration.
 	SalesforceOpportunityID param.Field[string] `json:"salesforce_opportunity_id"`
+	// Prevents the creation of duplicates. If a request to create a commit or credit
+	// is made with a uniqueness key that was previously used to create a commit or
+	// credit, a new record will not be created and the request will fail with a 409
+	// error.
+	UniquenessKey param.Field[string] `json:"uniqueness_key"`
 }
 
 func (r CustomerCreditNewParams) MarshalJSON() (data []byte, err error) {
@@ -157,7 +163,8 @@ func (r CustomerCreditNewParams) MarshalJSON() (data []byte, err error) {
 // Schedule for distributing the credit to the customer.
 type CustomerCreditNewParamsAccessSchedule struct {
 	ScheduleItems param.Field[[]CustomerCreditNewParamsAccessScheduleScheduleItem] `json:"schedule_items,required"`
-	CreditTypeID  param.Field[string]                                              `json:"credit_type_id" format:"uuid"`
+	// Defaults to USD (cents) if not passed
+	CreditTypeID param.Field[string] `json:"credit_type_id" format:"uuid"`
 }
 
 func (r CustomerCreditNewParamsAccessSchedule) MarshalJSON() (data []byte, err error) {
@@ -176,6 +183,23 @@ func (r CustomerCreditNewParamsAccessScheduleScheduleItem) MarshalJSON() (data [
 	return apijson.MarshalRoot(r)
 }
 
+type CustomerCreditNewParamsRateType string
+
+const (
+	CustomerCreditNewParamsRateTypeCommitRateUppercase CustomerCreditNewParamsRateType = "COMMIT_RATE"
+	CustomerCreditNewParamsRateTypeCommitRate          CustomerCreditNewParamsRateType = "commit_rate"
+	CustomerCreditNewParamsRateTypeListRateUppercase   CustomerCreditNewParamsRateType = "LIST_RATE"
+	CustomerCreditNewParamsRateTypeListRate            CustomerCreditNewParamsRateType = "list_rate"
+)
+
+func (r CustomerCreditNewParamsRateType) IsKnown() bool {
+	switch r {
+	case CustomerCreditNewParamsRateTypeCommitRateUppercase, CustomerCreditNewParamsRateTypeCommitRate, CustomerCreditNewParamsRateTypeListRateUppercase, CustomerCreditNewParamsRateTypeListRate:
+		return true
+	}
+	return false
+}
+
 type CustomerCreditListParams struct {
 	CustomerID param.Field[string] `json:"customer_id,required" format:"uuid"`
 	// Return only credits that have access schedules that "cover" the provided date
@@ -185,6 +209,9 @@ type CustomerCreditListParams struct {
 	EffectiveBefore param.Field[time.Time] `json:"effective_before" format:"date-time"`
 	// Include credits from archived contracts.
 	IncludeArchived param.Field[bool] `json:"include_archived"`
+	// Include the balance in the response. Setting this flag may cause the query to be
+	// slower.
+	IncludeBalance param.Field[bool] `json:"include_balance"`
 	// Include credits on the contract level.
 	IncludeContractCredits param.Field[bool] `json:"include_contract_credits"`
 	// Include credit ledgers in the response. Setting this flag may cause the query to

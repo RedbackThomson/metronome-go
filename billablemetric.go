@@ -8,13 +8,14 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/Metronome-Industries/metronome-go/internal/apijson"
 	"github.com/Metronome-Industries/metronome-go/internal/apiquery"
-	"github.com/Metronome-Industries/metronome-go/internal/pagination"
 	"github.com/Metronome-Industries/metronome-go/internal/param"
 	"github.com/Metronome-Industries/metronome-go/internal/requestconfig"
 	"github.com/Metronome-Industries/metronome-go/option"
+	"github.com/Metronome-Industries/metronome-go/packages/pagination"
 	"github.com/Metronome-Industries/metronome-go/shared"
 )
 
@@ -46,13 +47,13 @@ func (r *BillableMetricService) New(ctx context.Context, body BillableMetricNewP
 }
 
 // Get a billable metric.
-func (r *BillableMetricService) Get(ctx context.Context, billableMetricID string, opts ...option.RequestOption) (res *BillableMetricGetResponse, err error) {
+func (r *BillableMetricService) Get(ctx context.Context, query BillableMetricGetParams, opts ...option.RequestOption) (res *BillableMetricGetResponse, err error) {
 	opts = append(r.Options[:], opts...)
-	if billableMetricID == "" {
+	if query.BillableMetricID.Value == "" {
 		err = errors.New("missing required billable_metric_id parameter")
 		return
 	}
-	path := fmt.Sprintf("billable-metrics/%s", billableMetricID)
+	path := fmt.Sprintf("billable-metrics/%s", query.BillableMetricID)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return
 }
@@ -141,7 +142,10 @@ type BillableMetricGetResponseData struct {
 	AggregationKey string `json:"aggregation_key"`
 	// Specifies the type of aggregation performed on matching events.
 	AggregationType BillableMetricGetResponseDataAggregationType `json:"aggregation_type"`
-	CustomFields    map[string]string                            `json:"custom_fields"`
+	// RFC 3339 timestamp indicating when the billable metric was archived. If not
+	// provided, the billable metric is not archived.
+	ArchivedAt   time.Time         `json:"archived_at" format:"date-time"`
+	CustomFields map[string]string `json:"custom_fields"`
 	// An optional filtering rule to match the 'event_type' property of an event.
 	EventTypeFilter shared.EventTypeFilter `json:"event_type_filter"`
 	// Property names that are used to group usage costs on an invoice. Each entry
@@ -163,6 +167,7 @@ type billableMetricGetResponseDataJSON struct {
 	Name            apijson.Field
 	AggregationKey  apijson.Field
 	AggregationType apijson.Field
+	ArchivedAt      apijson.Field
 	CustomFields    apijson.Field
 	EventTypeFilter apijson.Field
 	GroupKeys       apijson.Field
@@ -210,7 +215,10 @@ type BillableMetricListResponse struct {
 	AggregationKey string `json:"aggregation_key"`
 	// Specifies the type of aggregation performed on matching events.
 	AggregationType BillableMetricListResponseAggregationType `json:"aggregation_type"`
-	CustomFields    map[string]string                         `json:"custom_fields"`
+	// RFC 3339 timestamp indicating when the billable metric was archived. If not
+	// provided, the billable metric is not archived.
+	ArchivedAt   time.Time         `json:"archived_at" format:"date-time"`
+	CustomFields map[string]string `json:"custom_fields"`
 	// An optional filtering rule to match the 'event_type' property of an event.
 	EventTypeFilter shared.EventTypeFilter `json:"event_type_filter"`
 	// Property names that are used to group usage costs on an invoice. Each entry
@@ -232,6 +240,7 @@ type billableMetricListResponseJSON struct {
 	Name            apijson.Field
 	AggregationKey  apijson.Field
 	AggregationType apijson.Field
+	ArchivedAt      apijson.Field
 	CustomFields    apijson.Field
 	EventTypeFilter apijson.Field
 	GroupKeys       apijson.Field
@@ -290,14 +299,13 @@ func (r billableMetricArchiveResponseJSON) RawJSON() string {
 }
 
 type BillableMetricNewParams struct {
-	// Specifies the type of aggregation performed on matching events.
-	AggregationType param.Field[BillableMetricNewParamsAggregationType] `json:"aggregation_type,required"`
 	// The display name of the billable metric.
 	Name param.Field[string] `json:"name,required"`
-	// A key that specifies which property of the event is used to aggregate data. This
-	// key must be one of the property filter names and is not applicable when the
-	// aggregation type is 'count'.
+	// Specifies the type of aggregation performed on matching events. Required if
+	// `sql` is not provided.
 	AggregationKey param.Field[string] `json:"aggregation_key"`
+	// Specifies the type of aggregation performed on matching events.
+	AggregationType param.Field[BillableMetricNewParamsAggregationType] `json:"aggregation_type"`
 	// Custom fields to attach to the billable metric.
 	CustomFields param.Field[map[string]string] `json:"custom_fields"`
 	// An optional filtering rule to match the 'event_type' property of an event.
@@ -309,6 +317,11 @@ type BillableMetricNewParams struct {
 	// rule on an event property. All rules must pass for the event to match the
 	// billable metric.
 	PropertyFilters param.Field[[]shared.PropertyFilterParam] `json:"property_filters"`
+	// The SQL query associated with the billable metric. This field is mutually
+	// exclusive with aggregation_type, event_type_filter, property_filters,
+	// aggregation_key, and group_keys. If provided, these other fields must be
+	// omitted.
+	Sql param.Field[string] `json:"sql"`
 }
 
 func (r BillableMetricNewParams) MarshalJSON() (data []byte, err error) {
@@ -334,7 +347,13 @@ func (r BillableMetricNewParamsAggregationType) IsKnown() bool {
 	return false
 }
 
+type BillableMetricGetParams struct {
+	BillableMetricID param.Field[string] `path:"billable_metric_id,required" format:"uuid"`
+}
+
 type BillableMetricListParams struct {
+	// If true, the list of returned metrics will include archived metrics
+	IncludeArchived param.Field[bool] `query:"include_archived"`
 	// Max number of results that should be returned
 	Limit param.Field[int64] `query:"limit"`
 	// Cursor that indicates where the next page of results should start.

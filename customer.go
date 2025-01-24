@@ -12,10 +12,10 @@ import (
 
 	"github.com/Metronome-Industries/metronome-go/internal/apijson"
 	"github.com/Metronome-Industries/metronome-go/internal/apiquery"
-	"github.com/Metronome-Industries/metronome-go/internal/pagination"
 	"github.com/Metronome-Industries/metronome-go/internal/param"
 	"github.com/Metronome-Industries/metronome-go/internal/requestconfig"
 	"github.com/Metronome-Industries/metronome-go/option"
+	"github.com/Metronome-Industries/metronome-go/packages/pagination"
 	"github.com/Metronome-Industries/metronome-go/shared"
 )
 
@@ -61,13 +61,13 @@ func (r *CustomerService) New(ctx context.Context, body CustomerNewParams, opts 
 }
 
 // Get a customer by Metronome ID.
-func (r *CustomerService) Get(ctx context.Context, customerID string, opts ...option.RequestOption) (res *CustomerGetResponse, err error) {
+func (r *CustomerService) Get(ctx context.Context, query CustomerGetParams, opts ...option.RequestOption) (res *CustomerGetResponse, err error) {
 	opts = append(r.Options[:], opts...)
-	if customerID == "" {
+	if query.CustomerID.Value == "" {
 		err = errors.New("missing required customer_id parameter")
 		return
 	}
-	path := fmt.Sprintf("customers/%s", customerID)
+	path := fmt.Sprintf("customers/%s", query.CustomerID)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return
 }
@@ -104,16 +104,16 @@ func (r *CustomerService) Archive(ctx context.Context, body CustomerArchiveParam
 }
 
 // Get all billable metrics for a given customer.
-func (r *CustomerService) ListBillableMetrics(ctx context.Context, customerID string, query CustomerListBillableMetricsParams, opts ...option.RequestOption) (res *pagination.CursorPage[CustomerListBillableMetricsResponse], err error) {
+func (r *CustomerService) ListBillableMetrics(ctx context.Context, params CustomerListBillableMetricsParams, opts ...option.RequestOption) (res *pagination.CursorPage[CustomerListBillableMetricsResponse], err error) {
 	var raw *http.Response
 	opts = append(r.Options[:], opts...)
 	opts = append([]option.RequestOption{option.WithResponseInto(&raw)}, opts...)
-	if customerID == "" {
+	if params.CustomerID.Value == "" {
 		err = errors.New("missing required customer_id parameter")
 		return
 	}
-	path := fmt.Sprintf("customers/%s/billable-metrics", customerID)
-	cfg, err := requestconfig.NewRequestConfig(ctx, http.MethodGet, path, query, &res, opts...)
+	path := fmt.Sprintf("customers/%s/billable-metrics", params.CustomerID)
+	cfg, err := requestconfig.NewRequestConfig(ctx, http.MethodGet, path, params, &res, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -126,23 +126,23 @@ func (r *CustomerService) ListBillableMetrics(ctx context.Context, customerID st
 }
 
 // Get all billable metrics for a given customer.
-func (r *CustomerService) ListBillableMetricsAutoPaging(ctx context.Context, customerID string, query CustomerListBillableMetricsParams, opts ...option.RequestOption) *pagination.CursorPageAutoPager[CustomerListBillableMetricsResponse] {
-	return pagination.NewCursorPageAutoPager(r.ListBillableMetrics(ctx, customerID, query, opts...))
+func (r *CustomerService) ListBillableMetricsAutoPaging(ctx context.Context, params CustomerListBillableMetricsParams, opts ...option.RequestOption) *pagination.CursorPageAutoPager[CustomerListBillableMetricsResponse] {
+	return pagination.NewCursorPageAutoPager(r.ListBillableMetrics(ctx, params, opts...))
 }
 
 // Fetch daily pending costs for the specified customer, broken down by credit type
 // and line items. Note: this is not supported for customers whose plan includes a
 // UNIQUE-type billable metric.
-func (r *CustomerService) ListCosts(ctx context.Context, customerID string, query CustomerListCostsParams, opts ...option.RequestOption) (res *pagination.CursorPage[CustomerListCostsResponse], err error) {
+func (r *CustomerService) ListCosts(ctx context.Context, params CustomerListCostsParams, opts ...option.RequestOption) (res *pagination.CursorPage[CustomerListCostsResponse], err error) {
 	var raw *http.Response
 	opts = append(r.Options[:], opts...)
 	opts = append([]option.RequestOption{option.WithResponseInto(&raw)}, opts...)
-	if customerID == "" {
+	if params.CustomerID.Value == "" {
 		err = errors.New("missing required customer_id parameter")
 		return
 	}
-	path := fmt.Sprintf("customers/%s/costs", customerID)
-	cfg, err := requestconfig.NewRequestConfig(ctx, http.MethodGet, path, query, &res, opts...)
+	path := fmt.Sprintf("customers/%s/costs", params.CustomerID)
+	cfg, err := requestconfig.NewRequestConfig(ctx, http.MethodGet, path, params, &res, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -157,47 +157,47 @@ func (r *CustomerService) ListCosts(ctx context.Context, customerID string, quer
 // Fetch daily pending costs for the specified customer, broken down by credit type
 // and line items. Note: this is not supported for customers whose plan includes a
 // UNIQUE-type billable metric.
-func (r *CustomerService) ListCostsAutoPaging(ctx context.Context, customerID string, query CustomerListCostsParams, opts ...option.RequestOption) *pagination.CursorPageAutoPager[CustomerListCostsResponse] {
-	return pagination.NewCursorPageAutoPager(r.ListCosts(ctx, customerID, query, opts...))
+func (r *CustomerService) ListCostsAutoPaging(ctx context.Context, params CustomerListCostsParams, opts ...option.RequestOption) *pagination.CursorPageAutoPager[CustomerListCostsResponse] {
+	return pagination.NewCursorPageAutoPager(r.ListCosts(ctx, params, opts...))
 }
 
 // Sets the ingest aliases for a customer. Ingest aliases can be used in the
 // `customer_id` field when sending usage events to Metronome. This call is
 // idempotent. It fully replaces the set of ingest aliases for the given customer.
-func (r *CustomerService) SetIngestAliases(ctx context.Context, customerID string, body CustomerSetIngestAliasesParams, opts ...option.RequestOption) (err error) {
+func (r *CustomerService) SetIngestAliases(ctx context.Context, params CustomerSetIngestAliasesParams, opts ...option.RequestOption) (err error) {
 	opts = append(r.Options[:], opts...)
 	opts = append([]option.RequestOption{option.WithHeader("Accept", "")}, opts...)
-	if customerID == "" {
+	if params.CustomerID.Value == "" {
 		err = errors.New("missing required customer_id parameter")
 		return
 	}
-	path := fmt.Sprintf("customers/%s/setIngestAliases", customerID)
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, nil, opts...)
+	path := fmt.Sprintf("customers/%s/setIngestAliases", params.CustomerID)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, params, nil, opts...)
 	return
 }
 
 // Updates the specified customer's name.
-func (r *CustomerService) SetName(ctx context.Context, customerID string, body CustomerSetNameParams, opts ...option.RequestOption) (res *CustomerSetNameResponse, err error) {
+func (r *CustomerService) SetName(ctx context.Context, params CustomerSetNameParams, opts ...option.RequestOption) (res *CustomerSetNameResponse, err error) {
 	opts = append(r.Options[:], opts...)
-	if customerID == "" {
+	if params.CustomerID.Value == "" {
 		err = errors.New("missing required customer_id parameter")
 		return
 	}
-	path := fmt.Sprintf("customers/%s/setName", customerID)
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
+	path := fmt.Sprintf("customers/%s/setName", params.CustomerID)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, params, &res, opts...)
 	return
 }
 
 // Updates the specified customer's config.
-func (r *CustomerService) UpdateConfig(ctx context.Context, customerID string, body CustomerUpdateConfigParams, opts ...option.RequestOption) (err error) {
+func (r *CustomerService) UpdateConfig(ctx context.Context, params CustomerUpdateConfigParams, opts ...option.RequestOption) (err error) {
 	opts = append(r.Options[:], opts...)
 	opts = append([]option.RequestOption{option.WithHeader("Accept", "")}, opts...)
-	if customerID == "" {
+	if params.CustomerID.Value == "" {
 		err = errors.New("missing required customer_id parameter")
 		return
 	}
-	path := fmt.Sprintf("customers/%s/updateConfig", customerID)
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, nil, opts...)
+	path := fmt.Sprintf("customers/%s/updateConfig", params.CustomerID)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, params, nil, opts...)
 	return
 }
 
@@ -409,7 +409,10 @@ type CustomerListBillableMetricsResponse struct {
 	AggregationKey string `json:"aggregation_key"`
 	// Specifies the type of aggregation performed on matching events.
 	AggregationType CustomerListBillableMetricsResponseAggregationType `json:"aggregation_type"`
-	CustomFields    map[string]string                                  `json:"custom_fields"`
+	// RFC 3339 timestamp indicating when the billable metric was archived. If not
+	// provided, the billable metric is not archived.
+	ArchivedAt   time.Time         `json:"archived_at" format:"date-time"`
+	CustomFields map[string]string `json:"custom_fields"`
 	// An optional filtering rule to match the 'event_type' property of an event.
 	EventTypeFilter shared.EventTypeFilter `json:"event_type_filter"`
 	// (DEPRECATED) use property_filters & event_type_filter instead
@@ -437,6 +440,7 @@ type customerListBillableMetricsResponseJSON struct {
 	AggregateKeys   apijson.Field
 	AggregationKey  apijson.Field
 	AggregationType apijson.Field
+	ArchivedAt      apijson.Field
 	CustomFields    apijson.Field
 	EventTypeFilter apijson.Field
 	Filter          apijson.Field
@@ -575,11 +579,12 @@ func (r customerSetNameResponseJSON) RawJSON() string {
 
 type CustomerNewParams struct {
 	// This will be truncated to 160 characters if the provided name is longer.
-	Name          param.Field[string]                         `json:"name,required"`
-	BillingConfig param.Field[CustomerNewParamsBillingConfig] `json:"billing_config"`
-	CustomFields  param.Field[map[string]string]              `json:"custom_fields"`
-	// (deprecated, use ingest_aliases instead) the first ID (Metronome ID or ingest
-	// alias) that can be used in usage events
+	Name                                  param.Field[string]                                                  `json:"name,required"`
+	BillingConfig                         param.Field[CustomerNewParamsBillingConfig]                          `json:"billing_config"`
+	CustomFields                          param.Field[map[string]string]                                       `json:"custom_fields"`
+	CustomerBillingProviderConfigurations param.Field[[]CustomerNewParamsCustomerBillingProviderConfiguration] `json:"customer_billing_provider_configurations"`
+	// (deprecated, use ingest_aliases instead) an alias that can be used to refer to
+	// this customer in usage events
 	ExternalID param.Field[string] `json:"external_id"`
 	// Aliases that can be used to refer to this customer in usage events
 	IngestAliases param.Field[[]string] `json:"ingest_aliases"`
@@ -590,11 +595,13 @@ func (r CustomerNewParams) MarshalJSON() (data []byte, err error) {
 }
 
 type CustomerNewParamsBillingConfig struct {
-	BillingProviderCustomerID param.Field[string]                                               `json:"billing_provider_customer_id,required"`
-	BillingProviderType       param.Field[CustomerNewParamsBillingConfigBillingProviderType]    `json:"billing_provider_type,required"`
-	AwsProductCode            param.Field[string]                                               `json:"aws_product_code"`
-	AwsRegion                 param.Field[CustomerNewParamsBillingConfigAwsRegion]              `json:"aws_region"`
-	StripeCollectionMethod    param.Field[CustomerNewParamsBillingConfigStripeCollectionMethod] `json:"stripe_collection_method"`
+	BillingProviderCustomerID param.Field[string]                                            `json:"billing_provider_customer_id,required"`
+	BillingProviderType       param.Field[CustomerNewParamsBillingConfigBillingProviderType] `json:"billing_provider_type,required"`
+	// True if the aws_product_code is a SAAS subscription product, false otherwise.
+	AwsIsSubscriptionProduct param.Field[bool]                                                 `json:"aws_is_subscription_product"`
+	AwsProductCode           param.Field[string]                                               `json:"aws_product_code"`
+	AwsRegion                param.Field[CustomerNewParamsBillingConfigAwsRegion]              `json:"aws_region"`
+	StripeCollectionMethod   param.Field[CustomerNewParamsBillingConfigStripeCollectionMethod] `json:"stripe_collection_method"`
 }
 
 func (r CustomerNewParamsBillingConfig) MarshalJSON() (data []byte, err error) {
@@ -675,6 +682,68 @@ func (r CustomerNewParamsBillingConfigStripeCollectionMethod) IsKnown() bool {
 	return false
 }
 
+type CustomerNewParamsCustomerBillingProviderConfiguration struct {
+	// The billing provider set for this configuration.
+	BillingProvider param.Field[CustomerNewParamsCustomerBillingProviderConfigurationsBillingProvider] `json:"billing_provider,required"`
+	// Configuration for the billing provider. The structure of this object is specific
+	// to the billing provider and delivery provider combination. Defaults to an empty
+	// object, however, for most billing provider + delivery method combinations, it
+	// will not be a valid configuration.
+	Configuration param.Field[map[string]interface{}] `json:"configuration"`
+	// The method to use for delivering invoices to this customer. If not provided, the
+	// `delivery_method_id` must be provided.
+	DeliveryMethod param.Field[CustomerNewParamsCustomerBillingProviderConfigurationsDeliveryMethod] `json:"delivery_method"`
+	// ID of the delivery method to use for this customer. If not provided, the
+	// `delivery_method` must be provided.
+	DeliveryMethodID param.Field[string] `json:"delivery_method_id" format:"uuid"`
+}
+
+func (r CustomerNewParamsCustomerBillingProviderConfiguration) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r)
+}
+
+// The billing provider set for this configuration.
+type CustomerNewParamsCustomerBillingProviderConfigurationsBillingProvider string
+
+const (
+	CustomerNewParamsCustomerBillingProviderConfigurationsBillingProviderAwsMarketplace   CustomerNewParamsCustomerBillingProviderConfigurationsBillingProvider = "aws_marketplace"
+	CustomerNewParamsCustomerBillingProviderConfigurationsBillingProviderAzureMarketplace CustomerNewParamsCustomerBillingProviderConfigurationsBillingProvider = "azure_marketplace"
+	CustomerNewParamsCustomerBillingProviderConfigurationsBillingProviderGcpMarketplace   CustomerNewParamsCustomerBillingProviderConfigurationsBillingProvider = "gcp_marketplace"
+	CustomerNewParamsCustomerBillingProviderConfigurationsBillingProviderStripe           CustomerNewParamsCustomerBillingProviderConfigurationsBillingProvider = "stripe"
+	CustomerNewParamsCustomerBillingProviderConfigurationsBillingProviderNetsuite         CustomerNewParamsCustomerBillingProviderConfigurationsBillingProvider = "netsuite"
+)
+
+func (r CustomerNewParamsCustomerBillingProviderConfigurationsBillingProvider) IsKnown() bool {
+	switch r {
+	case CustomerNewParamsCustomerBillingProviderConfigurationsBillingProviderAwsMarketplace, CustomerNewParamsCustomerBillingProviderConfigurationsBillingProviderAzureMarketplace, CustomerNewParamsCustomerBillingProviderConfigurationsBillingProviderGcpMarketplace, CustomerNewParamsCustomerBillingProviderConfigurationsBillingProviderStripe, CustomerNewParamsCustomerBillingProviderConfigurationsBillingProviderNetsuite:
+		return true
+	}
+	return false
+}
+
+// The method to use for delivering invoices to this customer. If not provided, the
+// `delivery_method_id` must be provided.
+type CustomerNewParamsCustomerBillingProviderConfigurationsDeliveryMethod string
+
+const (
+	CustomerNewParamsCustomerBillingProviderConfigurationsDeliveryMethodDirectToBillingProvider CustomerNewParamsCustomerBillingProviderConfigurationsDeliveryMethod = "direct_to_billing_provider"
+	CustomerNewParamsCustomerBillingProviderConfigurationsDeliveryMethodAwsSqs                  CustomerNewParamsCustomerBillingProviderConfigurationsDeliveryMethod = "aws_sqs"
+	CustomerNewParamsCustomerBillingProviderConfigurationsDeliveryMethodTackle                  CustomerNewParamsCustomerBillingProviderConfigurationsDeliveryMethod = "tackle"
+	CustomerNewParamsCustomerBillingProviderConfigurationsDeliveryMethodAwsSns                  CustomerNewParamsCustomerBillingProviderConfigurationsDeliveryMethod = "aws_sns"
+)
+
+func (r CustomerNewParamsCustomerBillingProviderConfigurationsDeliveryMethod) IsKnown() bool {
+	switch r {
+	case CustomerNewParamsCustomerBillingProviderConfigurationsDeliveryMethodDirectToBillingProvider, CustomerNewParamsCustomerBillingProviderConfigurationsDeliveryMethodAwsSqs, CustomerNewParamsCustomerBillingProviderConfigurationsDeliveryMethodTackle, CustomerNewParamsCustomerBillingProviderConfigurationsDeliveryMethodAwsSns:
+		return true
+	}
+	return false
+}
+
+type CustomerGetParams struct {
+	CustomerID param.Field[string] `path:"customer_id,required" format:"uuid"`
+}
+
 type CustomerListParams struct {
 	// Filter the customer list by customer_id. Up to 100 ids can be provided.
 	CustomerIDs param.Field[[]string] `query:"customer_ids"`
@@ -708,6 +777,9 @@ func (r CustomerArchiveParams) MarshalJSON() (data []byte, err error) {
 }
 
 type CustomerListBillableMetricsParams struct {
+	CustomerID param.Field[string] `path:"customer_id,required" format:"uuid"`
+	// If true, the list of returned metrics will include archived metrics
+	IncludeArchived param.Field[bool] `query:"include_archived"`
 	// Max number of results that should be returned
 	Limit param.Field[int64] `query:"limit"`
 	// Cursor that indicates where the next page of results should start.
@@ -727,6 +799,7 @@ func (r CustomerListBillableMetricsParams) URLQuery() (v url.Values) {
 }
 
 type CustomerListCostsParams struct {
+	CustomerID param.Field[string] `path:"customer_id,required" format:"uuid"`
 	// RFC 3339 timestamp (exclusive)
 	EndingBefore param.Field[time.Time] `query:"ending_before,required" format:"date-time"`
 	// RFC 3339 timestamp (inclusive)
@@ -747,6 +820,7 @@ func (r CustomerListCostsParams) URLQuery() (v url.Values) {
 }
 
 type CustomerSetIngestAliasesParams struct {
+	CustomerID    param.Field[string]   `path:"customer_id,required" format:"uuid"`
 	IngestAliases param.Field[[]string] `json:"ingest_aliases,required"`
 }
 
@@ -755,6 +829,7 @@ func (r CustomerSetIngestAliasesParams) MarshalJSON() (data []byte, err error) {
 }
 
 type CustomerSetNameParams struct {
+	CustomerID param.Field[string] `path:"customer_id,required" format:"uuid"`
 	// The new name for the customer. This will be truncated to 160 characters if the
 	// provided name is longer.
 	Name param.Field[string] `json:"name,required"`
@@ -765,6 +840,7 @@ func (r CustomerSetNameParams) MarshalJSON() (data []byte, err error) {
 }
 
 type CustomerUpdateConfigParams struct {
+	CustomerID param.Field[string] `path:"customer_id,required" format:"uuid"`
 	// Leave in draft or set to auto-advance on invoices sent to Stripe. Falls back to
 	// the client-level config if unset, which defaults to true if unset.
 	LeaveStripeInvoicesInDraft param.Field[bool] `json:"leave_stripe_invoices_in_draft"`

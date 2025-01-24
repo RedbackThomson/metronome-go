@@ -53,13 +53,22 @@ type Commit struct {
 	// this commit.
 	AccessSchedule ScheduleDuration `json:"access_schedule"`
 	// (DEPRECATED) Use access_schedule + invoice_schedule instead.
-	Amount                float64           `json:"amount"`
-	ApplicableContractIDs []string          `json:"applicable_contract_ids" format:"uuid"`
-	ApplicableProductIDs  []string          `json:"applicable_product_ids" format:"uuid"`
-	ApplicableProductTags []string          `json:"applicable_product_tags"`
-	Contract              CommitContract    `json:"contract"`
-	CustomFields          map[string]string `json:"custom_fields"`
-	Description           string            `json:"description"`
+	Amount                float64  `json:"amount"`
+	ApplicableContractIDs []string `json:"applicable_contract_ids" format:"uuid"`
+	ApplicableProductIDs  []string `json:"applicable_product_ids" format:"uuid"`
+	ApplicableProductTags []string `json:"applicable_product_tags"`
+	// The current balance of the credit or commit. This balance reflects the amount of
+	// credit or commit that the customer has access to use at this moment - thus,
+	// expired and upcoming credit or commit segments contribute 0 to the balance. The
+	// balance will match the sum of all ledger entries with the exception of the case
+	// where the sum of negative manual ledger entries exceeds the positive amount
+	// remaining on the credit or commit - in that case, the balance will be 0. All
+	// manual ledger entries associated with active credit or commit segments are
+	// included in the balance, including future-dated manual ledger entries.
+	Balance      float64           `json:"balance"`
+	Contract     CommitContract    `json:"contract"`
+	CustomFields map[string]string `json:"custom_fields"`
+	Description  string            `json:"description"`
 	// The contract that this commit will be billed on.
 	InvoiceContract CommitInvoiceContract `json:"invoice_contract"`
 	// The schedule that the customer will be invoiced for this commit.
@@ -73,11 +82,17 @@ type Commit struct {
 	// If multiple credits or commits are applicable, the one with the lower priority
 	// will apply first.
 	Priority         float64              `json:"priority"`
+	RateType         CommitRateType       `json:"rate_type"`
 	RolledOverFrom   CommitRolledOverFrom `json:"rolled_over_from"`
 	RolloverFraction float64              `json:"rollover_fraction"`
 	// This field's availability is dependent on your client's configuration.
-	SalesforceOpportunityID string     `json:"salesforce_opportunity_id"`
-	JSON                    commitJSON `json:"-"`
+	SalesforceOpportunityID string `json:"salesforce_opportunity_id"`
+	// Prevents the creation of duplicates. If a request to create a commit or credit
+	// is made with a uniqueness key that was previously used to create a commit or
+	// credit, a new record will not be created and the request will fail with a 409
+	// error.
+	UniquenessKey string     `json:"uniqueness_key"`
+	JSON          commitJSON `json:"-"`
 }
 
 // commitJSON contains the JSON metadata for the struct [Commit]
@@ -90,6 +105,7 @@ type commitJSON struct {
 	ApplicableContractIDs   apijson.Field
 	ApplicableProductIDs    apijson.Field
 	ApplicableProductTags   apijson.Field
+	Balance                 apijson.Field
 	Contract                apijson.Field
 	CustomFields            apijson.Field
 	Description             apijson.Field
@@ -99,9 +115,11 @@ type commitJSON struct {
 	Name                    apijson.Field
 	NetsuiteSalesOrderID    apijson.Field
 	Priority                apijson.Field
+	RateType                apijson.Field
 	RolledOverFrom          apijson.Field
 	RolloverFraction        apijson.Field
 	SalesforceOpportunityID apijson.Field
+	UniquenessKey           apijson.Field
 	raw                     string
 	ExtraFields             map[string]apijson.Field
 }
@@ -196,26 +214,26 @@ func (r commitInvoiceContractJSON) RawJSON() string {
 }
 
 type CommitLedger struct {
-	Type          CommitLedgerType `json:"type,required"`
-	Timestamp     time.Time        `json:"timestamp,required" format:"date-time"`
 	Amount        float64          `json:"amount,required"`
-	SegmentID     string           `json:"segment_id" format:"uuid"`
+	Timestamp     time.Time        `json:"timestamp,required" format:"date-time"`
+	Type          CommitLedgerType `json:"type,required"`
 	InvoiceID     string           `json:"invoice_id" format:"uuid"`
 	NewContractID string           `json:"new_contract_id" format:"uuid"`
 	Reason        string           `json:"reason"`
+	SegmentID     string           `json:"segment_id" format:"uuid"`
 	JSON          commitLedgerJSON `json:"-"`
 	union         CommitLedgerUnion
 }
 
 // commitLedgerJSON contains the JSON metadata for the struct [CommitLedger]
 type commitLedgerJSON struct {
-	Type          apijson.Field
-	Timestamp     apijson.Field
 	Amount        apijson.Field
-	SegmentID     apijson.Field
+	Timestamp     apijson.Field
+	Type          apijson.Field
 	InvoiceID     apijson.Field
 	NewContractID apijson.Field
 	Reason        apijson.Field
+	SegmentID     apijson.Field
 	raw           string
 	ExtraFields   map[string]apijson.Field
 }
@@ -927,6 +945,21 @@ func (r CommitLedgerType) IsKnown() bool {
 	return false
 }
 
+type CommitRateType string
+
+const (
+	CommitRateTypeCommitRate CommitRateType = "COMMIT_RATE"
+	CommitRateTypeListRate   CommitRateType = "LIST_RATE"
+)
+
+func (r CommitRateType) IsKnown() bool {
+	switch r {
+	case CommitRateTypeCommitRate, CommitRateTypeListRate:
+		return true
+	}
+	return false
+}
+
 type CommitRolledOverFrom struct {
 	CommitID   string                   `json:"commit_id,required" format:"uuid"`
 	ContractID string                   `json:"contract_id,required" format:"uuid"`
@@ -974,6 +1007,12 @@ type ContractWithoutAmendments struct {
 	ResellerRoyalties []ContractWithoutAmendmentsResellerRoyalty `json:"reseller_royalties"`
 	// This field's availability is dependent on your client's configuration.
 	SalesforceOpportunityID string `json:"salesforce_opportunity_id"`
+	// Determines which scheduled and commit charges to consolidate onto the Contract's
+	// usage invoice. The charge's `timestamp` must match the usage invoice's
+	// `ending_before` date for consolidation to occur. This field cannot be modified
+	// after a Contract has been created. If this field is omitted, charges will appear
+	// on a separate invoice from usage charges.
+	ScheduledChargesOnUsageInvoices ContractWithoutAmendmentsScheduledChargesOnUsageInvoices `json:"scheduled_charges_on_usage_invoices"`
 	// This field's availability is dependent on your client's configuration.
 	TotalContractValue float64                              `json:"total_contract_value"`
 	UsageFilter        ContractWithoutAmendmentsUsageFilter `json:"usage_filter"`
@@ -983,28 +1022,29 @@ type ContractWithoutAmendments struct {
 // contractWithoutAmendmentsJSON contains the JSON metadata for the struct
 // [ContractWithoutAmendments]
 type contractWithoutAmendmentsJSON struct {
-	Commits                 apijson.Field
-	CreatedAt               apijson.Field
-	CreatedBy               apijson.Field
-	Overrides               apijson.Field
-	ScheduledCharges        apijson.Field
-	StartingAt              apijson.Field
-	Transitions             apijson.Field
-	UsageStatementSchedule  apijson.Field
-	Credits                 apijson.Field
-	Discounts               apijson.Field
-	EndingBefore            apijson.Field
-	Name                    apijson.Field
-	NetPaymentTermsDays     apijson.Field
-	NetsuiteSalesOrderID    apijson.Field
-	ProfessionalServices    apijson.Field
-	RateCardID              apijson.Field
-	ResellerRoyalties       apijson.Field
-	SalesforceOpportunityID apijson.Field
-	TotalContractValue      apijson.Field
-	UsageFilter             apijson.Field
-	raw                     string
-	ExtraFields             map[string]apijson.Field
+	Commits                         apijson.Field
+	CreatedAt                       apijson.Field
+	CreatedBy                       apijson.Field
+	Overrides                       apijson.Field
+	ScheduledCharges                apijson.Field
+	StartingAt                      apijson.Field
+	Transitions                     apijson.Field
+	UsageStatementSchedule          apijson.Field
+	Credits                         apijson.Field
+	Discounts                       apijson.Field
+	EndingBefore                    apijson.Field
+	Name                            apijson.Field
+	NetPaymentTermsDays             apijson.Field
+	NetsuiteSalesOrderID            apijson.Field
+	ProfessionalServices            apijson.Field
+	RateCardID                      apijson.Field
+	ResellerRoyalties               apijson.Field
+	SalesforceOpportunityID         apijson.Field
+	ScheduledChargesOnUsageInvoices apijson.Field
+	TotalContractValue              apijson.Field
+	UsageFilter                     apijson.Field
+	raw                             string
+	ExtraFields                     map[string]apijson.Field
 }
 
 func (r *ContractWithoutAmendments) UnmarshalJSON(data []byte) (err error) {
@@ -1056,16 +1096,19 @@ func (r ContractWithoutAmendmentsTransitionsType) IsKnown() bool {
 }
 
 type ContractWithoutAmendmentsUsageStatementSchedule struct {
-	Frequency ContractWithoutAmendmentsUsageStatementScheduleFrequency `json:"frequency,required"`
-	JSON      contractWithoutAmendmentsUsageStatementScheduleJSON      `json:"-"`
+	// Contract usage statements follow a selected cadence based on this date.
+	BillingAnchorDate time.Time                                                `json:"billing_anchor_date,required" format:"date-time"`
+	Frequency         ContractWithoutAmendmentsUsageStatementScheduleFrequency `json:"frequency,required"`
+	JSON              contractWithoutAmendmentsUsageStatementScheduleJSON      `json:"-"`
 }
 
 // contractWithoutAmendmentsUsageStatementScheduleJSON contains the JSON metadata
 // for the struct [ContractWithoutAmendmentsUsageStatementSchedule]
 type contractWithoutAmendmentsUsageStatementScheduleJSON struct {
-	Frequency   apijson.Field
-	raw         string
-	ExtraFields map[string]apijson.Field
+	BillingAnchorDate apijson.Field
+	Frequency         apijson.Field
+	raw               string
+	ExtraFields       map[string]apijson.Field
 }
 
 func (r *ContractWithoutAmendmentsUsageStatementSchedule) UnmarshalJSON(data []byte) (err error) {
@@ -1081,11 +1124,12 @@ type ContractWithoutAmendmentsUsageStatementScheduleFrequency string
 const (
 	ContractWithoutAmendmentsUsageStatementScheduleFrequencyMonthly   ContractWithoutAmendmentsUsageStatementScheduleFrequency = "MONTHLY"
 	ContractWithoutAmendmentsUsageStatementScheduleFrequencyQuarterly ContractWithoutAmendmentsUsageStatementScheduleFrequency = "QUARTERLY"
+	ContractWithoutAmendmentsUsageStatementScheduleFrequencyAnnual    ContractWithoutAmendmentsUsageStatementScheduleFrequency = "ANNUAL"
 )
 
 func (r ContractWithoutAmendmentsUsageStatementScheduleFrequency) IsKnown() bool {
 	switch r {
-	case ContractWithoutAmendmentsUsageStatementScheduleFrequencyMonthly, ContractWithoutAmendmentsUsageStatementScheduleFrequencyQuarterly:
+	case ContractWithoutAmendmentsUsageStatementScheduleFrequencyMonthly, ContractWithoutAmendmentsUsageStatementScheduleFrequencyQuarterly, ContractWithoutAmendmentsUsageStatementScheduleFrequencyAnnual:
 		return true
 	}
 	return false
@@ -1153,6 +1197,25 @@ func (r ContractWithoutAmendmentsResellerRoyaltiesResellerType) IsKnown() bool {
 	return false
 }
 
+// Determines which scheduled and commit charges to consolidate onto the Contract's
+// usage invoice. The charge's `timestamp` must match the usage invoice's
+// `ending_before` date for consolidation to occur. This field cannot be modified
+// after a Contract has been created. If this field is omitted, charges will appear
+// on a separate invoice from usage charges.
+type ContractWithoutAmendmentsScheduledChargesOnUsageInvoices string
+
+const (
+	ContractWithoutAmendmentsScheduledChargesOnUsageInvoicesAll ContractWithoutAmendmentsScheduledChargesOnUsageInvoices = "ALL"
+)
+
+func (r ContractWithoutAmendmentsScheduledChargesOnUsageInvoices) IsKnown() bool {
+	switch r {
+	case ContractWithoutAmendmentsScheduledChargesOnUsageInvoicesAll:
+		return true
+	}
+	return false
+}
+
 type ContractWithoutAmendmentsUsageFilter struct {
 	Current BaseUsageFilter                              `json:"current,required,nullable"`
 	Initial BaseUsageFilter                              `json:"initial,required"`
@@ -1208,13 +1271,22 @@ type Credit struct {
 	Product CreditProduct `json:"product,required"`
 	Type    CreditType    `json:"type,required"`
 	// The schedule that the customer will gain access to the credits.
-	AccessSchedule        ScheduleDuration  `json:"access_schedule"`
-	ApplicableContractIDs []string          `json:"applicable_contract_ids" format:"uuid"`
-	ApplicableProductIDs  []string          `json:"applicable_product_ids" format:"uuid"`
-	ApplicableProductTags []string          `json:"applicable_product_tags"`
-	Contract              CreditContract    `json:"contract"`
-	CustomFields          map[string]string `json:"custom_fields"`
-	Description           string            `json:"description"`
+	AccessSchedule        ScheduleDuration `json:"access_schedule"`
+	ApplicableContractIDs []string         `json:"applicable_contract_ids" format:"uuid"`
+	ApplicableProductIDs  []string         `json:"applicable_product_ids" format:"uuid"`
+	ApplicableProductTags []string         `json:"applicable_product_tags"`
+	// The current balance of the credit or commit. This balance reflects the amount of
+	// credit or commit that the customer has access to use at this moment - thus,
+	// expired and upcoming credit or commit segments contribute 0 to the balance. The
+	// balance will match the sum of all ledger entries with the exception of the case
+	// where the sum of negative manual ledger entries exceeds the positive amount
+	// remaining on the credit or commit - in that case, the balance will be 0. All
+	// manual ledger entries associated with active credit or commit segments are
+	// included in the balance, including future-dated manual ledger entries.
+	Balance      float64           `json:"balance"`
+	Contract     CreditContract    `json:"contract"`
+	CustomFields map[string]string `json:"custom_fields"`
+	Description  string            `json:"description"`
 	// A list of ordered events that impact the balance of a credit. For example, an
 	// invoice deduction or an expiration.
 	Ledger []CreditLedger `json:"ledger"`
@@ -1223,10 +1295,16 @@ type Credit struct {
 	NetsuiteSalesOrderID string `json:"netsuite_sales_order_id"`
 	// If multiple credits or commits are applicable, the one with the lower priority
 	// will apply first.
-	Priority float64 `json:"priority"`
+	Priority float64        `json:"priority"`
+	RateType CreditRateType `json:"rate_type"`
 	// This field's availability is dependent on your client's configuration.
-	SalesforceOpportunityID string     `json:"salesforce_opportunity_id"`
-	JSON                    creditJSON `json:"-"`
+	SalesforceOpportunityID string `json:"salesforce_opportunity_id"`
+	// Prevents the creation of duplicates. If a request to create a commit or credit
+	// is made with a uniqueness key that was previously used to create a commit or
+	// credit, a new record will not be created and the request will fail with a 409
+	// error.
+	UniquenessKey string     `json:"uniqueness_key"`
+	JSON          creditJSON `json:"-"`
 }
 
 // creditJSON contains the JSON metadata for the struct [Credit]
@@ -1238,6 +1316,7 @@ type creditJSON struct {
 	ApplicableContractIDs   apijson.Field
 	ApplicableProductIDs    apijson.Field
 	ApplicableProductTags   apijson.Field
+	Balance                 apijson.Field
 	Contract                apijson.Field
 	CustomFields            apijson.Field
 	Description             apijson.Field
@@ -1245,7 +1324,9 @@ type creditJSON struct {
 	Name                    apijson.Field
 	NetsuiteSalesOrderID    apijson.Field
 	Priority                apijson.Field
+	RateType                apijson.Field
 	SalesforceOpportunityID apijson.Field
+	UniquenessKey           apijson.Field
 	raw                     string
 	ExtraFields             map[string]apijson.Field
 }
@@ -1317,24 +1398,24 @@ func (r creditContractJSON) RawJSON() string {
 }
 
 type CreditLedger struct {
-	Type      CreditLedgerType `json:"type,required"`
-	Timestamp time.Time        `json:"timestamp,required" format:"date-time"`
 	Amount    float64          `json:"amount,required"`
-	SegmentID string           `json:"segment_id" format:"uuid"`
+	Timestamp time.Time        `json:"timestamp,required" format:"date-time"`
+	Type      CreditLedgerType `json:"type,required"`
 	InvoiceID string           `json:"invoice_id" format:"uuid"`
 	Reason    string           `json:"reason"`
+	SegmentID string           `json:"segment_id" format:"uuid"`
 	JSON      creditLedgerJSON `json:"-"`
 	union     CreditLedgerUnion
 }
 
 // creditLedgerJSON contains the JSON metadata for the struct [CreditLedger]
 type creditLedgerJSON struct {
-	Type        apijson.Field
-	Timestamp   apijson.Field
 	Amount      apijson.Field
-	SegmentID   apijson.Field
+	Timestamp   apijson.Field
+	Type        apijson.Field
 	InvoiceID   apijson.Field
 	Reason      apijson.Field
+	SegmentID   apijson.Field
 	raw         string
 	ExtraFields map[string]apijson.Field
 }
@@ -1690,11 +1771,49 @@ func (r CreditLedgerType) IsKnown() bool {
 	return false
 }
 
+type CreditRateType string
+
+const (
+	CreditRateTypeCommitRate CreditRateType = "COMMIT_RATE"
+	CreditRateTypeListRate   CreditRateType = "LIST_RATE"
+)
+
+func (r CreditRateType) IsKnown() bool {
+	switch r {
+	case CreditRateTypeCommitRate, CreditRateTypeListRate:
+		return true
+	}
+	return false
+}
+
+type CreditTypeData struct {
+	ID   string             `json:"id,required" format:"uuid"`
+	Name string             `json:"name,required"`
+	JSON creditTypeDataJSON `json:"-"`
+}
+
+// creditTypeDataJSON contains the JSON metadata for the struct [CreditTypeData]
+type creditTypeDataJSON struct {
+	ID          apijson.Field
+	Name        apijson.Field
+	raw         string
+	ExtraFields map[string]apijson.Field
+}
+
+func (r *CreditTypeData) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r creditTypeDataJSON) RawJSON() string {
+	return r.raw
+}
+
 type Discount struct {
-	ID       string              `json:"id,required" format:"uuid"`
-	Product  DiscountProduct     `json:"product,required"`
-	Schedule SchedulePointInTime `json:"schedule,required"`
-	Name     string              `json:"name"`
+	ID           string              `json:"id,required" format:"uuid"`
+	Product      DiscountProduct     `json:"product,required"`
+	Schedule     SchedulePointInTime `json:"schedule,required"`
+	CustomFields map[string]string   `json:"custom_fields"`
+	Name         string              `json:"name"`
 	// This field's availability is dependent on your client's configuration.
 	NetsuiteSalesOrderID string       `json:"netsuite_sales_order_id"`
 	JSON                 discountJSON `json:"-"`
@@ -1705,6 +1824,7 @@ type discountJSON struct {
 	ID                   apijson.Field
 	Product              apijson.Field
 	Schedule             apijson.Field
+	CustomFields         apijson.Field
 	Name                 apijson.Field
 	NetsuiteSalesOrderID apijson.Field
 	raw                  string
@@ -1815,13 +1935,15 @@ func (r IDParam) MarshalJSON() (data []byte, err error) {
 }
 
 type Override struct {
-	ID                    string     `json:"id,required" format:"uuid"`
-	StartingAt            time.Time  `json:"starting_at,required" format:"date-time"`
-	ApplicableProductTags []string   `json:"applicable_product_tags"`
-	CreditType            CreditType `json:"credit_type"`
-	EndingBefore          time.Time  `json:"ending_before" format:"date-time"`
-	Entitled              bool       `json:"entitled"`
-	// Default proration configuration. Only valid for SUBSCRIPTION rate_type.
+	ID                    string         `json:"id,required" format:"uuid"`
+	StartingAt            time.Time      `json:"starting_at,required" format:"date-time"`
+	ApplicableProductTags []string       `json:"applicable_product_tags"`
+	CreditType            CreditTypeData `json:"credit_type"`
+	EndingBefore          time.Time      `json:"ending_before" format:"date-time"`
+	Entitled              bool           `json:"entitled"`
+	IsCommitSpecific      bool           `json:"is_commit_specific"`
+	// Default proration configuration. Only valid for SUBSCRIPTION rate_type. Must be
+	// set to true.
 	IsProrated         bool                        `json:"is_prorated"`
 	Multiplier         float64                     `json:"multiplier"`
 	OverrideSpecifiers []OverrideOverrideSpecifier `json:"override_specifiers"`
@@ -1835,6 +1957,7 @@ type Override struct {
 	// Default quantity. For SUBSCRIPTION rate_type, this must be >=0.
 	Quantity float64          `json:"quantity"`
 	RateType OverrideRateType `json:"rate_type"`
+	Target   OverrideTarget   `json:"target"`
 	// Only set for TIERED rate_type.
 	Tiers []Tier       `json:"tiers"`
 	Type  OverrideType `json:"type"`
@@ -1852,6 +1975,7 @@ type overrideJSON struct {
 	CreditType            apijson.Field
 	EndingBefore          apijson.Field
 	Entitled              apijson.Field
+	IsCommitSpecific      apijson.Field
 	IsProrated            apijson.Field
 	Multiplier            apijson.Field
 	OverrideSpecifiers    apijson.Field
@@ -1862,6 +1986,7 @@ type overrideJSON struct {
 	Product               apijson.Field
 	Quantity              apijson.Field
 	RateType              apijson.Field
+	Target                apijson.Field
 	Tiers                 apijson.Field
 	Type                  apijson.Field
 	Value                 apijson.Field
@@ -1878,6 +2003,7 @@ func (r overrideJSON) RawJSON() string {
 }
 
 type OverrideOverrideSpecifier struct {
+	CommitIDs               []string                      `json:"commit_ids"`
 	PresentationGroupValues map[string]string             `json:"presentation_group_values"`
 	PricingGroupValues      map[string]string             `json:"pricing_group_values"`
 	ProductID               string                        `json:"product_id" format:"uuid"`
@@ -1888,6 +2014,7 @@ type OverrideOverrideSpecifier struct {
 // overrideOverrideSpecifierJSON contains the JSON metadata for the struct
 // [OverrideOverrideSpecifier]
 type overrideOverrideSpecifierJSON struct {
+	CommitIDs               apijson.Field
 	PresentationGroupValues apijson.Field
 	PricingGroupValues      apijson.Field
 	ProductID               apijson.Field
@@ -1929,11 +2056,12 @@ func (r overrideOverrideTierJSON) RawJSON() string {
 
 type OverrideOverwriteRate struct {
 	RateType   OverrideOverwriteRateRateType `json:"rate_type,required"`
-	CreditType CreditType                    `json:"credit_type"`
+	CreditType CreditTypeData                `json:"credit_type"`
 	// Only set for CUSTOM rate_type. This field is interpreted by custom rate
 	// processors.
 	CustomRate map[string]interface{} `json:"custom_rate"`
-	// Default proration configuration. Only valid for SUBSCRIPTION rate_type.
+	// Default proration configuration. Only valid for SUBSCRIPTION rate_type. Must be
+	// set to true.
 	IsProrated bool `json:"is_prorated"`
 	// Default price. For FLAT rate_type, this must be >=0. For PERCENTAGE rate_type,
 	// this is a decimal fraction, e.g. use 0.1 for 10%; this must be >=0 and <=1.
@@ -2020,6 +2148,21 @@ const (
 func (r OverrideRateType) IsKnown() bool {
 	switch r {
 	case OverrideRateTypeFlat, OverrideRateTypePercentage, OverrideRateTypeSubscription, OverrideRateTypeTiered, OverrideRateTypeCustom:
+		return true
+	}
+	return false
+}
+
+type OverrideTarget string
+
+const (
+	OverrideTargetCommitRate OverrideTarget = "COMMIT_RATE"
+	OverrideTargetListRate   OverrideTarget = "LIST_RATE"
+)
+
+func (r OverrideTarget) IsKnown() bool {
+	switch r {
+	case OverrideTargetCommitRate, OverrideTargetListRate:
 		return true
 	}
 	return false
@@ -2145,12 +2288,13 @@ func (r proServiceJSON) RawJSON() string {
 }
 
 type Rate struct {
-	RateType   RateRateType `json:"rate_type,required"`
-	CreditType CreditType   `json:"credit_type"`
+	RateType   RateRateType   `json:"rate_type,required"`
+	CreditType CreditTypeData `json:"credit_type"`
 	// Only set for CUSTOM rate_type. This field is interpreted by custom rate
 	// processors.
 	CustomRate map[string]interface{} `json:"custom_rate"`
-	// Default proration configuration. Only valid for SUBSCRIPTION rate_type.
+	// Default proration configuration. Only valid for SUBSCRIPTION rate_type. Must be
+	// set to true.
 	IsProrated bool `json:"is_prorated"`
 	// Default price. For FLAT rate_type, this must be >=0. For PERCENTAGE rate_type,
 	// this is a decimal fraction, e.g. use 0.1 for 10%; this must be >=0 and <=1.
@@ -2267,7 +2411,7 @@ func (r scheduledChargeProductJSON) RawJSON() string {
 
 type ScheduleDuration struct {
 	ScheduleItems []ScheduleDurationScheduleItem `json:"schedule_items,required"`
-	CreditType    CreditType                     `json:"credit_type"`
+	CreditType    CreditTypeData                 `json:"credit_type"`
 	JSON          scheduleDurationJSON           `json:"-"`
 }
 
@@ -2316,7 +2460,7 @@ func (r scheduleDurationScheduleItemJSON) RawJSON() string {
 }
 
 type SchedulePointInTime struct {
-	CreditType    CreditType                        `json:"credit_type"`
+	CreditType    CreditTypeData                    `json:"credit_type"`
 	ScheduleItems []SchedulePointInTimeScheduleItem `json:"schedule_items"`
 	JSON          schedulePointInTimeJSON           `json:"-"`
 }
