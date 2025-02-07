@@ -1033,21 +1033,16 @@ func (r contractGetRateScheduleResponseDataCommitRateJSON) RawJSON() string {
 type ContractGetRateScheduleResponseDataCommitRateRateType string
 
 const (
-	ContractGetRateScheduleResponseDataCommitRateRateTypeFlatUppercase         ContractGetRateScheduleResponseDataCommitRateRateType = "FLAT"
-	ContractGetRateScheduleResponseDataCommitRateRateTypeFlat                  ContractGetRateScheduleResponseDataCommitRateRateType = "flat"
-	ContractGetRateScheduleResponseDataCommitRateRateTypePercentageUppercase   ContractGetRateScheduleResponseDataCommitRateRateType = "PERCENTAGE"
-	ContractGetRateScheduleResponseDataCommitRateRateTypePercentage            ContractGetRateScheduleResponseDataCommitRateRateType = "percentage"
-	ContractGetRateScheduleResponseDataCommitRateRateTypeSubscriptionUppercase ContractGetRateScheduleResponseDataCommitRateRateType = "SUBSCRIPTION"
-	ContractGetRateScheduleResponseDataCommitRateRateTypeSubscription          ContractGetRateScheduleResponseDataCommitRateRateType = "subscription"
-	ContractGetRateScheduleResponseDataCommitRateRateTypeTieredUppercase       ContractGetRateScheduleResponseDataCommitRateRateType = "TIERED"
-	ContractGetRateScheduleResponseDataCommitRateRateTypeTiered                ContractGetRateScheduleResponseDataCommitRateRateType = "tiered"
-	ContractGetRateScheduleResponseDataCommitRateRateTypeCustomUppercase       ContractGetRateScheduleResponseDataCommitRateRateType = "CUSTOM"
-	ContractGetRateScheduleResponseDataCommitRateRateTypeCustom                ContractGetRateScheduleResponseDataCommitRateRateType = "custom"
+	ContractGetRateScheduleResponseDataCommitRateRateTypeFlat         ContractGetRateScheduleResponseDataCommitRateRateType = "FLAT"
+	ContractGetRateScheduleResponseDataCommitRateRateTypePercentage   ContractGetRateScheduleResponseDataCommitRateRateType = "PERCENTAGE"
+	ContractGetRateScheduleResponseDataCommitRateRateTypeSubscription ContractGetRateScheduleResponseDataCommitRateRateType = "SUBSCRIPTION"
+	ContractGetRateScheduleResponseDataCommitRateRateTypeTiered       ContractGetRateScheduleResponseDataCommitRateRateType = "TIERED"
+	ContractGetRateScheduleResponseDataCommitRateRateTypeCustom       ContractGetRateScheduleResponseDataCommitRateRateType = "CUSTOM"
 )
 
 func (r ContractGetRateScheduleResponseDataCommitRateRateType) IsKnown() bool {
 	switch r {
-	case ContractGetRateScheduleResponseDataCommitRateRateTypeFlatUppercase, ContractGetRateScheduleResponseDataCommitRateRateTypeFlat, ContractGetRateScheduleResponseDataCommitRateRateTypePercentageUppercase, ContractGetRateScheduleResponseDataCommitRateRateTypePercentage, ContractGetRateScheduleResponseDataCommitRateRateTypeSubscriptionUppercase, ContractGetRateScheduleResponseDataCommitRateRateTypeSubscription, ContractGetRateScheduleResponseDataCommitRateRateTypeTieredUppercase, ContractGetRateScheduleResponseDataCommitRateRateTypeTiered, ContractGetRateScheduleResponseDataCommitRateRateTypeCustomUppercase, ContractGetRateScheduleResponseDataCommitRateRateTypeCustom:
+	case ContractGetRateScheduleResponseDataCommitRateRateTypeFlat, ContractGetRateScheduleResponseDataCommitRateRateTypePercentage, ContractGetRateScheduleResponseDataCommitRateRateTypeSubscription, ContractGetRateScheduleResponseDataCommitRateRateTypeTiered, ContractGetRateScheduleResponseDataCommitRateRateTypeCustom:
 		return true
 	}
 	return false
@@ -1122,8 +1117,10 @@ type ContractNewParams struct {
 	ProfessionalServices param.Field[[]ContractNewParamsProfessionalService] `json:"professional_services"`
 	// Selects the rate card linked to the specified alias as of the contract's start
 	// date.
-	RateCardAlias param.Field[string] `json:"rate_card_alias"`
-	RateCardID    param.Field[string] `json:"rate_card_id" format:"uuid"`
+	RateCardAlias    param.Field[string]                             `json:"rate_card_alias"`
+	RateCardID       param.Field[string]                             `json:"rate_card_id" format:"uuid"`
+	RecurringCommits param.Field[[]ContractNewParamsRecurringCommit] `json:"recurring_commits"`
+	RecurringCredits param.Field[[]ContractNewParamsRecurringCredit] `json:"recurring_credits"`
 	// This field's availability is dependent on your client's configuration.
 	ResellerRoyalties param.Field[[]ContractNewParamsResellerRoyalty] `json:"reseller_royalties"`
 	// This field's availability is dependent on your client's configuration.
@@ -1383,15 +1380,13 @@ func (r ContractNewParamsCommitsInvoiceScheduleScheduleItem) MarshalJSON() (data
 type ContractNewParamsCommitsRateType string
 
 const (
-	ContractNewParamsCommitsRateTypeCommitRateUppercase ContractNewParamsCommitsRateType = "COMMIT_RATE"
-	ContractNewParamsCommitsRateTypeCommitRate          ContractNewParamsCommitsRateType = "commit_rate"
-	ContractNewParamsCommitsRateTypeListRateUppercase   ContractNewParamsCommitsRateType = "LIST_RATE"
-	ContractNewParamsCommitsRateTypeListRate            ContractNewParamsCommitsRateType = "list_rate"
+	ContractNewParamsCommitsRateTypeCommitRate ContractNewParamsCommitsRateType = "COMMIT_RATE"
+	ContractNewParamsCommitsRateTypeListRate   ContractNewParamsCommitsRateType = "LIST_RATE"
 )
 
 func (r ContractNewParamsCommitsRateType) IsKnown() bool {
 	switch r {
-	case ContractNewParamsCommitsRateTypeCommitRateUppercase, ContractNewParamsCommitsRateTypeCommitRate, ContractNewParamsCommitsRateTypeListRateUppercase, ContractNewParamsCommitsRateTypeListRate:
+	case ContractNewParamsCommitsRateTypeCommitRate, ContractNewParamsCommitsRateTypeListRate:
 		return true
 	}
 	return false
@@ -1450,15 +1445,13 @@ func (r ContractNewParamsCreditsAccessScheduleScheduleItem) MarshalJSON() (data 
 type ContractNewParamsCreditsRateType string
 
 const (
-	ContractNewParamsCreditsRateTypeCommitRateUppercase ContractNewParamsCreditsRateType = "COMMIT_RATE"
-	ContractNewParamsCreditsRateTypeCommitRate          ContractNewParamsCreditsRateType = "commit_rate"
-	ContractNewParamsCreditsRateTypeListRateUppercase   ContractNewParamsCreditsRateType = "LIST_RATE"
-	ContractNewParamsCreditsRateTypeListRate            ContractNewParamsCreditsRateType = "list_rate"
+	ContractNewParamsCreditsRateTypeCommitRate ContractNewParamsCreditsRateType = "COMMIT_RATE"
+	ContractNewParamsCreditsRateTypeListRate   ContractNewParamsCreditsRateType = "LIST_RATE"
 )
 
 func (r ContractNewParamsCreditsRateType) IsKnown() bool {
 	switch r {
-	case ContractNewParamsCreditsRateTypeCommitRateUppercase, ContractNewParamsCreditsRateTypeCommitRate, ContractNewParamsCreditsRateTypeListRateUppercase, ContractNewParamsCreditsRateTypeListRate:
+	case ContractNewParamsCreditsRateTypeCommitRate, ContractNewParamsCreditsRateTypeListRate:
 		return true
 	}
 	return false
@@ -1646,8 +1639,7 @@ type ContractNewParamsOverridesOverrideSpecifier struct {
 	// specified commits. If not provided, the override will apply to all commits.
 	CommitIDs param.Field[[]string] `json:"commit_ids"`
 	// A map of group names to values. The override will only apply to line items with
-	// the specified presentation group values. Can only be used for multiplier
-	// overrides.
+	// the specified presentation group values.
 	PresentationGroupValues param.Field[map[string]string] `json:"presentation_group_values"`
 	// A map of pricing group names to values. The override will only apply to products
 	// with the specified pricing group values.
@@ -1657,6 +1649,16 @@ type ContractNewParamsOverridesOverrideSpecifier struct {
 	// If provided, the override will only apply to products with all the specified
 	// tags.
 	ProductTags param.Field[[]string] `json:"product_tags"`
+	// Can only be used for commit specific overrides. Must be used in conjunction with
+	// one of product_id, product_tags, pricing_group_values, or
+	// presentation_group_values. If provided, the override will only apply to commits
+	// created by the specified recurring commit ids.
+	RecurringCommitIDs param.Field[[]string] `json:"recurring_commit_ids"`
+	// Can only be used for commit specific overrides. Must be used in conjunction with
+	// one of product_id, product_tags, pricing_group_values, or
+	// presentation_group_values. If provided, the override will only apply to credits
+	// created by the specified recurring credit ids.
+	RecurringCreditIDs param.Field[[]string] `json:"recurring_credit_ids"`
 }
 
 func (r ContractNewParamsOverridesOverrideSpecifier) MarshalJSON() (data []byte, err error) {
@@ -1710,15 +1712,13 @@ func (r ContractNewParamsOverridesOverwriteRateRateType) IsKnown() bool {
 type ContractNewParamsOverridesTarget string
 
 const (
-	ContractNewParamsOverridesTargetCommitRateUppercase ContractNewParamsOverridesTarget = "COMMIT_RATE"
-	ContractNewParamsOverridesTargetCommitRate          ContractNewParamsOverridesTarget = "commit_rate"
-	ContractNewParamsOverridesTargetListRateUppercase   ContractNewParamsOverridesTarget = "LIST_RATE"
-	ContractNewParamsOverridesTargetListRate            ContractNewParamsOverridesTarget = "list_rate"
+	ContractNewParamsOverridesTargetCommitRate ContractNewParamsOverridesTarget = "COMMIT_RATE"
+	ContractNewParamsOverridesTargetListRate   ContractNewParamsOverridesTarget = "LIST_RATE"
 )
 
 func (r ContractNewParamsOverridesTarget) IsKnown() bool {
 	switch r {
-	case ContractNewParamsOverridesTargetCommitRateUppercase, ContractNewParamsOverridesTargetCommitRate, ContractNewParamsOverridesTargetListRateUppercase, ContractNewParamsOverridesTargetListRate:
+	case ContractNewParamsOverridesTargetCommitRate, ContractNewParamsOverridesTargetListRate:
 		return true
 	}
 	return false
@@ -1768,6 +1768,208 @@ type ContractNewParamsProfessionalService struct {
 
 func (r ContractNewParamsProfessionalService) MarshalJSON() (data []byte, err error) {
 	return apijson.MarshalRoot(r)
+}
+
+type ContractNewParamsRecurringCommit struct {
+	// The amount of commit to grant.
+	AccessAmount param.Field[ContractNewParamsRecurringCommitsAccessAmount] `json:"access_amount,required"`
+	// The amount of time the created commits will be valid for.
+	CommitDuration param.Field[ContractNewParamsRecurringCommitsCommitDuration] `json:"commit_duration,required"`
+	// Will be passed down to the individual commits
+	Priority  param.Field[float64] `json:"priority,required"`
+	ProductID param.Field[string]  `json:"product_id,required" format:"uuid"`
+	// determines the start time for the first commit
+	StartingAt param.Field[time.Time] `json:"starting_at,required" format:"date-time"`
+	// Will be passed down to the individual commits
+	ApplicableProductIDs param.Field[[]string] `json:"applicable_product_ids" format:"uuid"`
+	// Will be passed down to the individual commits
+	ApplicableProductTags param.Field[[]string] `json:"applicable_product_tags"`
+	// Will be passed down to the individual commits
+	Description param.Field[string] `json:"description"`
+	// Determines when the contract will stop creating recurring commits. optional
+	EndingBefore param.Field[time.Time] `json:"ending_before" format:"date-time"`
+	// The amount the customer should be billed for the commit. Not required.
+	InvoiceAmount param.Field[ContractNewParamsRecurringCommitsInvoiceAmount] `json:"invoice_amount"`
+	// displayed on invoices. will be passed through to the individual commits
+	Name param.Field[string] `json:"name"`
+	// Will be passed down to the individual commits
+	NetsuiteSalesOrderID param.Field[string] `json:"netsuite_sales_order_id"`
+	// Whether the created commits will use the commit rate or list rate
+	RateType param.Field[ContractNewParamsRecurringCommitsRateType] `json:"rate_type"`
+	// Will be passed down to the individual commits. This controls how much of an
+	// individual unexpired commit will roll over upon contract transition. Must be
+	// between 0 and 1.
+	RolloverFraction param.Field[float64] `json:"rollover_fraction"`
+	// A temporary ID that can be used to reference the recurring commit for commit
+	// specific overrides.
+	TemporaryID param.Field[string] `json:"temporary_id"`
+}
+
+func (r ContractNewParamsRecurringCommit) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r)
+}
+
+// The amount of commit to grant.
+type ContractNewParamsRecurringCommitsAccessAmount struct {
+	CreditTypeID param.Field[string]  `json:"credit_type_id,required" format:"uuid"`
+	Quantity     param.Field[float64] `json:"quantity,required"`
+	UnitPrice    param.Field[float64] `json:"unit_price,required"`
+}
+
+func (r ContractNewParamsRecurringCommitsAccessAmount) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r)
+}
+
+// The amount of time the created commits will be valid for.
+type ContractNewParamsRecurringCommitsCommitDuration struct {
+	Unit  param.Field[ContractNewParamsRecurringCommitsCommitDurationUnit] `json:"unit,required"`
+	Value param.Field[float64]                                             `json:"value,required"`
+}
+
+func (r ContractNewParamsRecurringCommitsCommitDuration) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r)
+}
+
+type ContractNewParamsRecurringCommitsCommitDurationUnit string
+
+const (
+	ContractNewParamsRecurringCommitsCommitDurationUnitPeriods ContractNewParamsRecurringCommitsCommitDurationUnit = "PERIODS"
+)
+
+func (r ContractNewParamsRecurringCommitsCommitDurationUnit) IsKnown() bool {
+	switch r {
+	case ContractNewParamsRecurringCommitsCommitDurationUnitPeriods:
+		return true
+	}
+	return false
+}
+
+// The amount the customer should be billed for the commit. Not required.
+type ContractNewParamsRecurringCommitsInvoiceAmount struct {
+	CreditTypeID param.Field[string]  `json:"credit_type_id,required" format:"uuid"`
+	Quantity     param.Field[float64] `json:"quantity,required"`
+	UnitPrice    param.Field[float64] `json:"unit_price,required"`
+}
+
+func (r ContractNewParamsRecurringCommitsInvoiceAmount) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r)
+}
+
+// Whether the created commits will use the commit rate or list rate
+type ContractNewParamsRecurringCommitsRateType string
+
+const (
+	ContractNewParamsRecurringCommitsRateTypeCommitRate ContractNewParamsRecurringCommitsRateType = "COMMIT_RATE"
+	ContractNewParamsRecurringCommitsRateTypeListRate   ContractNewParamsRecurringCommitsRateType = "LIST_RATE"
+)
+
+func (r ContractNewParamsRecurringCommitsRateType) IsKnown() bool {
+	switch r {
+	case ContractNewParamsRecurringCommitsRateTypeCommitRate, ContractNewParamsRecurringCommitsRateTypeListRate:
+		return true
+	}
+	return false
+}
+
+type ContractNewParamsRecurringCredit struct {
+	// The amount of commit to grant.
+	AccessAmount param.Field[ContractNewParamsRecurringCreditsAccessAmount] `json:"access_amount,required"`
+	// The amount of time the created commits will be valid for.
+	CommitDuration param.Field[ContractNewParamsRecurringCreditsCommitDuration] `json:"commit_duration,required"`
+	// Will be passed down to the individual commits
+	Priority  param.Field[float64] `json:"priority,required"`
+	ProductID param.Field[string]  `json:"product_id,required" format:"uuid"`
+	// determines the start time for the first commit
+	StartingAt param.Field[time.Time] `json:"starting_at,required" format:"date-time"`
+	// Will be passed down to the individual commits
+	ApplicableProductIDs param.Field[[]string] `json:"applicable_product_ids" format:"uuid"`
+	// Will be passed down to the individual commits
+	ApplicableProductTags param.Field[[]string] `json:"applicable_product_tags"`
+	// Will be passed down to the individual commits
+	Description param.Field[string] `json:"description"`
+	// Determines when the contract will stop creating recurring commits. optional
+	EndingBefore param.Field[time.Time] `json:"ending_before" format:"date-time"`
+	// The amount the customer should be billed for the commit. Not required.
+	InvoiceAmount param.Field[ContractNewParamsRecurringCreditsInvoiceAmount] `json:"invoice_amount"`
+	// displayed on invoices. will be passed through to the individual commits
+	Name param.Field[string] `json:"name"`
+	// Will be passed down to the individual commits
+	NetsuiteSalesOrderID param.Field[string] `json:"netsuite_sales_order_id"`
+	// Whether the created commits will use the commit rate or list rate
+	RateType param.Field[ContractNewParamsRecurringCreditsRateType] `json:"rate_type"`
+	// Will be passed down to the individual commits. This controls how much of an
+	// individual unexpired commit will roll over upon contract transition. Must be
+	// between 0 and 1.
+	RolloverFraction param.Field[float64] `json:"rollover_fraction"`
+	// A temporary ID that can be used to reference the recurring commit for commit
+	// specific overrides.
+	TemporaryID param.Field[string] `json:"temporary_id"`
+}
+
+func (r ContractNewParamsRecurringCredit) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r)
+}
+
+// The amount of commit to grant.
+type ContractNewParamsRecurringCreditsAccessAmount struct {
+	CreditTypeID param.Field[string]  `json:"credit_type_id,required" format:"uuid"`
+	Quantity     param.Field[float64] `json:"quantity,required"`
+	UnitPrice    param.Field[float64] `json:"unit_price,required"`
+}
+
+func (r ContractNewParamsRecurringCreditsAccessAmount) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r)
+}
+
+// The amount of time the created commits will be valid for.
+type ContractNewParamsRecurringCreditsCommitDuration struct {
+	Unit  param.Field[ContractNewParamsRecurringCreditsCommitDurationUnit] `json:"unit,required"`
+	Value param.Field[float64]                                             `json:"value,required"`
+}
+
+func (r ContractNewParamsRecurringCreditsCommitDuration) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r)
+}
+
+type ContractNewParamsRecurringCreditsCommitDurationUnit string
+
+const (
+	ContractNewParamsRecurringCreditsCommitDurationUnitPeriods ContractNewParamsRecurringCreditsCommitDurationUnit = "PERIODS"
+)
+
+func (r ContractNewParamsRecurringCreditsCommitDurationUnit) IsKnown() bool {
+	switch r {
+	case ContractNewParamsRecurringCreditsCommitDurationUnitPeriods:
+		return true
+	}
+	return false
+}
+
+// The amount the customer should be billed for the commit. Not required.
+type ContractNewParamsRecurringCreditsInvoiceAmount struct {
+	CreditTypeID param.Field[string]  `json:"credit_type_id,required" format:"uuid"`
+	Quantity     param.Field[float64] `json:"quantity,required"`
+	UnitPrice    param.Field[float64] `json:"unit_price,required"`
+}
+
+func (r ContractNewParamsRecurringCreditsInvoiceAmount) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r)
+}
+
+// Whether the created commits will use the commit rate or list rate
+type ContractNewParamsRecurringCreditsRateType string
+
+const (
+	ContractNewParamsRecurringCreditsRateTypeCommitRate ContractNewParamsRecurringCreditsRateType = "COMMIT_RATE"
+	ContractNewParamsRecurringCreditsRateTypeListRate   ContractNewParamsRecurringCreditsRateType = "LIST_RATE"
+)
+
+func (r ContractNewParamsRecurringCreditsRateType) IsKnown() bool {
+	switch r {
+	case ContractNewParamsRecurringCreditsRateTypeCommitRate, ContractNewParamsRecurringCreditsRateTypeListRate:
+		return true
+	}
+	return false
 }
 
 type ContractNewParamsResellerRoyalty struct {
@@ -2051,15 +2253,14 @@ func (r ContractNewParamsUsageStatementScheduleFrequency) IsKnown() bool {
 type ContractNewParamsUsageStatementScheduleDay string
 
 const (
-	ContractNewParamsUsageStatementScheduleDayFirstOfMonth        ContractNewParamsUsageStatementScheduleDay = "FIRST_OF_MONTH"
-	ContractNewParamsUsageStatementScheduleDayContractStart       ContractNewParamsUsageStatementScheduleDay = "CONTRACT_START"
-	ContractNewParamsUsageStatementScheduleDayCustomDateUppercase ContractNewParamsUsageStatementScheduleDay = "CUSTOM_DATE"
-	ContractNewParamsUsageStatementScheduleDayCustomDate          ContractNewParamsUsageStatementScheduleDay = "custom_date"
+	ContractNewParamsUsageStatementScheduleDayFirstOfMonth  ContractNewParamsUsageStatementScheduleDay = "FIRST_OF_MONTH"
+	ContractNewParamsUsageStatementScheduleDayContractStart ContractNewParamsUsageStatementScheduleDay = "CONTRACT_START"
+	ContractNewParamsUsageStatementScheduleDayCustomDate    ContractNewParamsUsageStatementScheduleDay = "CUSTOM_DATE"
 )
 
 func (r ContractNewParamsUsageStatementScheduleDay) IsKnown() bool {
 	switch r {
-	case ContractNewParamsUsageStatementScheduleDayFirstOfMonth, ContractNewParamsUsageStatementScheduleDayContractStart, ContractNewParamsUsageStatementScheduleDayCustomDateUppercase, ContractNewParamsUsageStatementScheduleDayCustomDate:
+	case ContractNewParamsUsageStatementScheduleDayFirstOfMonth, ContractNewParamsUsageStatementScheduleDayContractStart, ContractNewParamsUsageStatementScheduleDayCustomDate:
 		return true
 	}
 	return false
@@ -2342,15 +2543,13 @@ func (r ContractAmendParamsCommitsInvoiceScheduleScheduleItem) MarshalJSON() (da
 type ContractAmendParamsCommitsRateType string
 
 const (
-	ContractAmendParamsCommitsRateTypeCommitRateUppercase ContractAmendParamsCommitsRateType = "COMMIT_RATE"
-	ContractAmendParamsCommitsRateTypeCommitRate          ContractAmendParamsCommitsRateType = "commit_rate"
-	ContractAmendParamsCommitsRateTypeListRateUppercase   ContractAmendParamsCommitsRateType = "LIST_RATE"
-	ContractAmendParamsCommitsRateTypeListRate            ContractAmendParamsCommitsRateType = "list_rate"
+	ContractAmendParamsCommitsRateTypeCommitRate ContractAmendParamsCommitsRateType = "COMMIT_RATE"
+	ContractAmendParamsCommitsRateTypeListRate   ContractAmendParamsCommitsRateType = "LIST_RATE"
 )
 
 func (r ContractAmendParamsCommitsRateType) IsKnown() bool {
 	switch r {
-	case ContractAmendParamsCommitsRateTypeCommitRateUppercase, ContractAmendParamsCommitsRateTypeCommitRate, ContractAmendParamsCommitsRateTypeListRateUppercase, ContractAmendParamsCommitsRateTypeListRate:
+	case ContractAmendParamsCommitsRateTypeCommitRate, ContractAmendParamsCommitsRateTypeListRate:
 		return true
 	}
 	return false
@@ -2409,15 +2608,13 @@ func (r ContractAmendParamsCreditsAccessScheduleScheduleItem) MarshalJSON() (dat
 type ContractAmendParamsCreditsRateType string
 
 const (
-	ContractAmendParamsCreditsRateTypeCommitRateUppercase ContractAmendParamsCreditsRateType = "COMMIT_RATE"
-	ContractAmendParamsCreditsRateTypeCommitRate          ContractAmendParamsCreditsRateType = "commit_rate"
-	ContractAmendParamsCreditsRateTypeListRateUppercase   ContractAmendParamsCreditsRateType = "LIST_RATE"
-	ContractAmendParamsCreditsRateTypeListRate            ContractAmendParamsCreditsRateType = "list_rate"
+	ContractAmendParamsCreditsRateTypeCommitRate ContractAmendParamsCreditsRateType = "COMMIT_RATE"
+	ContractAmendParamsCreditsRateTypeListRate   ContractAmendParamsCreditsRateType = "LIST_RATE"
 )
 
 func (r ContractAmendParamsCreditsRateType) IsKnown() bool {
 	switch r {
-	case ContractAmendParamsCreditsRateTypeCommitRateUppercase, ContractAmendParamsCreditsRateTypeCommitRate, ContractAmendParamsCreditsRateTypeListRateUppercase, ContractAmendParamsCreditsRateTypeListRate:
+	case ContractAmendParamsCreditsRateTypeCommitRate, ContractAmendParamsCreditsRateTypeListRate:
 		return true
 	}
 	return false
@@ -2586,8 +2783,7 @@ type ContractAmendParamsOverridesOverrideSpecifier struct {
 	// specified commits. If not provided, the override will apply to all commits.
 	CommitIDs param.Field[[]string] `json:"commit_ids"`
 	// A map of group names to values. The override will only apply to line items with
-	// the specified presentation group values. Can only be used for multiplier
-	// overrides.
+	// the specified presentation group values.
 	PresentationGroupValues param.Field[map[string]string] `json:"presentation_group_values"`
 	// A map of pricing group names to values. The override will only apply to products
 	// with the specified pricing group values.
@@ -2597,6 +2793,16 @@ type ContractAmendParamsOverridesOverrideSpecifier struct {
 	// If provided, the override will only apply to products with all the specified
 	// tags.
 	ProductTags param.Field[[]string] `json:"product_tags"`
+	// Can only be used for commit specific overrides. Must be used in conjunction with
+	// one of product_id, product_tags, pricing_group_values, or
+	// presentation_group_values. If provided, the override will only apply to commits
+	// created by the specified recurring commit ids.
+	RecurringCommitIDs param.Field[[]string] `json:"recurring_commit_ids"`
+	// Can only be used for commit specific overrides. Must be used in conjunction with
+	// one of product_id, product_tags, pricing_group_values, or
+	// presentation_group_values. If provided, the override will only apply to credits
+	// created by the specified recurring credit ids.
+	RecurringCreditIDs param.Field[[]string] `json:"recurring_credit_ids"`
 }
 
 func (r ContractAmendParamsOverridesOverrideSpecifier) MarshalJSON() (data []byte, err error) {
@@ -2650,15 +2856,13 @@ func (r ContractAmendParamsOverridesOverwriteRateRateType) IsKnown() bool {
 type ContractAmendParamsOverridesTarget string
 
 const (
-	ContractAmendParamsOverridesTargetCommitRateUppercase ContractAmendParamsOverridesTarget = "COMMIT_RATE"
-	ContractAmendParamsOverridesTargetCommitRate          ContractAmendParamsOverridesTarget = "commit_rate"
-	ContractAmendParamsOverridesTargetListRateUppercase   ContractAmendParamsOverridesTarget = "LIST_RATE"
-	ContractAmendParamsOverridesTargetListRate            ContractAmendParamsOverridesTarget = "list_rate"
+	ContractAmendParamsOverridesTargetCommitRate ContractAmendParamsOverridesTarget = "COMMIT_RATE"
+	ContractAmendParamsOverridesTargetListRate   ContractAmendParamsOverridesTarget = "LIST_RATE"
 )
 
 func (r ContractAmendParamsOverridesTarget) IsKnown() bool {
 	switch r {
-	case ContractAmendParamsOverridesTargetCommitRateUppercase, ContractAmendParamsOverridesTargetCommitRate, ContractAmendParamsOverridesTargetListRateUppercase, ContractAmendParamsOverridesTargetListRate:
+	case ContractAmendParamsOverridesTargetCommitRate, ContractAmendParamsOverridesTargetListRate:
 		return true
 	}
 	return false

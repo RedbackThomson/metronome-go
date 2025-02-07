@@ -286,7 +286,7 @@ func (r CommitLedger) AsUnion() CommitLedgerUnion {
 // [shared.CommitLedgerPostpaidCommitManualLedgerEntry] or
 // [shared.CommitLedgerPostpaidCommitExpirationLedgerEntry].
 type CommitLedgerUnion interface {
-	implementsSharedCommitLedger()
+	implementsCommitLedger()
 }
 
 func init() {
@@ -375,7 +375,7 @@ func (r commitLedgerPrepaidCommitSegmentStartLedgerEntryJSON) RawJSON() string {
 	return r.raw
 }
 
-func (r CommitLedgerPrepaidCommitSegmentStartLedgerEntry) implementsSharedCommitLedger() {}
+func (r CommitLedgerPrepaidCommitSegmentStartLedgerEntry) implementsCommitLedger() {}
 
 type CommitLedgerPrepaidCommitSegmentStartLedgerEntryType string
 
@@ -421,8 +421,7 @@ func (r commitLedgerPrepaidCommitAutomatedInvoiceDeductionLedgerEntryJSON) RawJS
 	return r.raw
 }
 
-func (r CommitLedgerPrepaidCommitAutomatedInvoiceDeductionLedgerEntry) implementsSharedCommitLedger() {
-}
+func (r CommitLedgerPrepaidCommitAutomatedInvoiceDeductionLedgerEntry) implementsCommitLedger() {}
 
 type CommitLedgerPrepaidCommitAutomatedInvoiceDeductionLedgerEntryType string
 
@@ -467,7 +466,7 @@ func (r commitLedgerPrepaidCommitRolloverLedgerEntryJSON) RawJSON() string {
 	return r.raw
 }
 
-func (r CommitLedgerPrepaidCommitRolloverLedgerEntry) implementsSharedCommitLedger() {}
+func (r CommitLedgerPrepaidCommitRolloverLedgerEntry) implementsCommitLedger() {}
 
 type CommitLedgerPrepaidCommitRolloverLedgerEntryType string
 
@@ -510,7 +509,7 @@ func (r commitLedgerPrepaidCommitExpirationLedgerEntryJSON) RawJSON() string {
 	return r.raw
 }
 
-func (r CommitLedgerPrepaidCommitExpirationLedgerEntry) implementsSharedCommitLedger() {}
+func (r CommitLedgerPrepaidCommitExpirationLedgerEntry) implementsCommitLedger() {}
 
 type CommitLedgerPrepaidCommitExpirationLedgerEntryType string
 
@@ -555,7 +554,7 @@ func (r commitLedgerPrepaidCommitCanceledLedgerEntryJSON) RawJSON() string {
 	return r.raw
 }
 
-func (r CommitLedgerPrepaidCommitCanceledLedgerEntry) implementsSharedCommitLedger() {}
+func (r CommitLedgerPrepaidCommitCanceledLedgerEntry) implementsCommitLedger() {}
 
 type CommitLedgerPrepaidCommitCanceledLedgerEntryType string
 
@@ -600,7 +599,7 @@ func (r commitLedgerPrepaidCommitCreditedLedgerEntryJSON) RawJSON() string {
 	return r.raw
 }
 
-func (r CommitLedgerPrepaidCommitCreditedLedgerEntry) implementsSharedCommitLedger() {}
+func (r CommitLedgerPrepaidCommitCreditedLedgerEntry) implementsCommitLedger() {}
 
 type CommitLedgerPrepaidCommitCreditedLedgerEntryType string
 
@@ -641,7 +640,7 @@ func (r commitLedgerPostpaidCommitInitialBalanceLedgerEntryJSON) RawJSON() strin
 	return r.raw
 }
 
-func (r CommitLedgerPostpaidCommitInitialBalanceLedgerEntry) implementsSharedCommitLedger() {}
+func (r CommitLedgerPostpaidCommitInitialBalanceLedgerEntry) implementsCommitLedger() {}
 
 type CommitLedgerPostpaidCommitInitialBalanceLedgerEntryType string
 
@@ -687,8 +686,7 @@ func (r commitLedgerPostpaidCommitAutomatedInvoiceDeductionLedgerEntryJSON) RawJ
 	return r.raw
 }
 
-func (r CommitLedgerPostpaidCommitAutomatedInvoiceDeductionLedgerEntry) implementsSharedCommitLedger() {
-}
+func (r CommitLedgerPostpaidCommitAutomatedInvoiceDeductionLedgerEntry) implementsCommitLedger() {}
 
 type CommitLedgerPostpaidCommitAutomatedInvoiceDeductionLedgerEntryType string
 
@@ -733,7 +731,7 @@ func (r commitLedgerPostpaidCommitRolloverLedgerEntryJSON) RawJSON() string {
 	return r.raw
 }
 
-func (r CommitLedgerPostpaidCommitRolloverLedgerEntry) implementsSharedCommitLedger() {}
+func (r CommitLedgerPostpaidCommitRolloverLedgerEntry) implementsCommitLedger() {}
 
 type CommitLedgerPostpaidCommitRolloverLedgerEntryType string
 
@@ -776,7 +774,7 @@ func (r commitLedgerPostpaidCommitTrueupLedgerEntryJSON) RawJSON() string {
 	return r.raw
 }
 
-func (r CommitLedgerPostpaidCommitTrueupLedgerEntry) implementsSharedCommitLedger() {}
+func (r CommitLedgerPostpaidCommitTrueupLedgerEntry) implementsCommitLedger() {}
 
 type CommitLedgerPostpaidCommitTrueupLedgerEntryType string
 
@@ -819,7 +817,7 @@ func (r commitLedgerPrepaidCommitManualLedgerEntryJSON) RawJSON() string {
 	return r.raw
 }
 
-func (r CommitLedgerPrepaidCommitManualLedgerEntry) implementsSharedCommitLedger() {}
+func (r CommitLedgerPrepaidCommitManualLedgerEntry) implementsCommitLedger() {}
 
 type CommitLedgerPrepaidCommitManualLedgerEntryType string
 
@@ -862,7 +860,7 @@ func (r commitLedgerPostpaidCommitManualLedgerEntryJSON) RawJSON() string {
 	return r.raw
 }
 
-func (r CommitLedgerPostpaidCommitManualLedgerEntry) implementsSharedCommitLedger() {}
+func (r CommitLedgerPostpaidCommitManualLedgerEntry) implementsCommitLedger() {}
 
 type CommitLedgerPostpaidCommitManualLedgerEntryType string
 
@@ -903,7 +901,7 @@ func (r commitLedgerPostpaidCommitExpirationLedgerEntryJSON) RawJSON() string {
 	return r.raw
 }
 
-func (r CommitLedgerPostpaidCommitExpirationLedgerEntry) implementsSharedCommitLedger() {}
+func (r CommitLedgerPostpaidCommitExpirationLedgerEntry) implementsCommitLedger() {}
 
 type CommitLedgerPostpaidCommitExpirationLedgerEntryType string
 
@@ -1001,8 +999,10 @@ type ContractWithoutAmendments struct {
 	// This field's availability is dependent on your client's configuration.
 	NetsuiteSalesOrderID string `json:"netsuite_sales_order_id"`
 	// This field's availability is dependent on your client's configuration.
-	ProfessionalServices []ProService `json:"professional_services"`
-	RateCardID           string       `json:"rate_card_id" format:"uuid"`
+	ProfessionalServices []ProService                               `json:"professional_services"`
+	RateCardID           string                                     `json:"rate_card_id" format:"uuid"`
+	RecurringCommits     []ContractWithoutAmendmentsRecurringCommit `json:"recurring_commits"`
+	RecurringCredits     []ContractWithoutAmendmentsRecurringCredit `json:"recurring_credits"`
 	// This field's availability is dependent on your client's configuration.
 	ResellerRoyalties []ContractWithoutAmendmentsResellerRoyalty `json:"reseller_royalties"`
 	// This field's availability is dependent on your client's configuration.
@@ -1038,6 +1038,8 @@ type contractWithoutAmendmentsJSON struct {
 	NetsuiteSalesOrderID            apijson.Field
 	ProfessionalServices            apijson.Field
 	RateCardID                      apijson.Field
+	RecurringCommits                apijson.Field
+	RecurringCredits                apijson.Field
 	ResellerRoyalties               apijson.Field
 	SalesforceOpportunityID         apijson.Field
 	ScheduledChargesOnUsageInvoices apijson.Field
@@ -1133,6 +1135,440 @@ func (r ContractWithoutAmendmentsUsageStatementScheduleFrequency) IsKnown() bool
 		return true
 	}
 	return false
+}
+
+type ContractWithoutAmendmentsRecurringCommit struct {
+	ID string `json:"id,required" format:"uuid"`
+	// The amount of commit to grant.
+	AccessAmount ContractWithoutAmendmentsRecurringCommitsAccessAmount `json:"access_amount,required"`
+	// The amount of time the created commits will be valid for
+	CommitDuration ContractWithoutAmendmentsRecurringCommitsCommitDuration `json:"commit_duration,required"`
+	// Will be passed down to the individual commits
+	Priority float64                                          `json:"priority,required"`
+	Product  ContractWithoutAmendmentsRecurringCommitsProduct `json:"product,required"`
+	// Whether the created commits will use the commit rate or list rate
+	RateType ContractWithoutAmendmentsRecurringCommitsRateType `json:"rate_type,required"`
+	// Determines the start time for the first commit
+	StartingAt time.Time `json:"starting_at,required" format:"date-time"`
+	// Will be passed down to the individual commits
+	ApplicableProductIDs []string `json:"applicable_product_ids" format:"uuid"`
+	// Will be passed down to the individual commits
+	ApplicableProductTags []string                                          `json:"applicable_product_tags"`
+	Contract              ContractWithoutAmendmentsRecurringCommitsContract `json:"contract"`
+	// Will be passed down to the individual commits
+	Description string `json:"description"`
+	// Determines when the contract will stop creating recurring commits. Optional
+	EndingBefore time.Time `json:"ending_before" format:"date-time"`
+	// The amount the customer should be billed for the commit. Not required.
+	InvoiceAmount ContractWithoutAmendmentsRecurringCommitsInvoiceAmount `json:"invoice_amount"`
+	// Displayed on invoices. Will be passed through to the individual commits
+	Name string `json:"name"`
+	// Will be passed down to the individual commits
+	NetsuiteSalesOrderID string `json:"netsuite_sales_order_id"`
+	// Will be passed down to the individual commits. This controls how much of an
+	// individual unexpired commit will roll over upon contract transition. Must be
+	// between 0 and 1.
+	RolloverFraction float64                                      `json:"rollover_fraction"`
+	JSON             contractWithoutAmendmentsRecurringCommitJSON `json:"-"`
+}
+
+// contractWithoutAmendmentsRecurringCommitJSON contains the JSON metadata for the
+// struct [ContractWithoutAmendmentsRecurringCommit]
+type contractWithoutAmendmentsRecurringCommitJSON struct {
+	ID                    apijson.Field
+	AccessAmount          apijson.Field
+	CommitDuration        apijson.Field
+	Priority              apijson.Field
+	Product               apijson.Field
+	RateType              apijson.Field
+	StartingAt            apijson.Field
+	ApplicableProductIDs  apijson.Field
+	ApplicableProductTags apijson.Field
+	Contract              apijson.Field
+	Description           apijson.Field
+	EndingBefore          apijson.Field
+	InvoiceAmount         apijson.Field
+	Name                  apijson.Field
+	NetsuiteSalesOrderID  apijson.Field
+	RolloverFraction      apijson.Field
+	raw                   string
+	ExtraFields           map[string]apijson.Field
+}
+
+func (r *ContractWithoutAmendmentsRecurringCommit) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r contractWithoutAmendmentsRecurringCommitJSON) RawJSON() string {
+	return r.raw
+}
+
+// The amount of commit to grant.
+type ContractWithoutAmendmentsRecurringCommitsAccessAmount struct {
+	CreditTypeID string                                                    `json:"credit_type_id,required" format:"uuid"`
+	Quantity     float64                                                   `json:"quantity,required"`
+	UnitPrice    float64                                                   `json:"unit_price,required"`
+	JSON         contractWithoutAmendmentsRecurringCommitsAccessAmountJSON `json:"-"`
+}
+
+// contractWithoutAmendmentsRecurringCommitsAccessAmountJSON contains the JSON
+// metadata for the struct [ContractWithoutAmendmentsRecurringCommitsAccessAmount]
+type contractWithoutAmendmentsRecurringCommitsAccessAmountJSON struct {
+	CreditTypeID apijson.Field
+	Quantity     apijson.Field
+	UnitPrice    apijson.Field
+	raw          string
+	ExtraFields  map[string]apijson.Field
+}
+
+func (r *ContractWithoutAmendmentsRecurringCommitsAccessAmount) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r contractWithoutAmendmentsRecurringCommitsAccessAmountJSON) RawJSON() string {
+	return r.raw
+}
+
+// The amount of time the created commits will be valid for
+type ContractWithoutAmendmentsRecurringCommitsCommitDuration struct {
+	Value float64                                                     `json:"value,required"`
+	Unit  ContractWithoutAmendmentsRecurringCommitsCommitDurationUnit `json:"unit"`
+	JSON  contractWithoutAmendmentsRecurringCommitsCommitDurationJSON `json:"-"`
+}
+
+// contractWithoutAmendmentsRecurringCommitsCommitDurationJSON contains the JSON
+// metadata for the struct
+// [ContractWithoutAmendmentsRecurringCommitsCommitDuration]
+type contractWithoutAmendmentsRecurringCommitsCommitDurationJSON struct {
+	Value       apijson.Field
+	Unit        apijson.Field
+	raw         string
+	ExtraFields map[string]apijson.Field
+}
+
+func (r *ContractWithoutAmendmentsRecurringCommitsCommitDuration) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r contractWithoutAmendmentsRecurringCommitsCommitDurationJSON) RawJSON() string {
+	return r.raw
+}
+
+type ContractWithoutAmendmentsRecurringCommitsCommitDurationUnit string
+
+const (
+	ContractWithoutAmendmentsRecurringCommitsCommitDurationUnitPeriods ContractWithoutAmendmentsRecurringCommitsCommitDurationUnit = "PERIODS"
+)
+
+func (r ContractWithoutAmendmentsRecurringCommitsCommitDurationUnit) IsKnown() bool {
+	switch r {
+	case ContractWithoutAmendmentsRecurringCommitsCommitDurationUnitPeriods:
+		return true
+	}
+	return false
+}
+
+type ContractWithoutAmendmentsRecurringCommitsProduct struct {
+	ID   string                                               `json:"id,required" format:"uuid"`
+	Name string                                               `json:"name,required"`
+	JSON contractWithoutAmendmentsRecurringCommitsProductJSON `json:"-"`
+}
+
+// contractWithoutAmendmentsRecurringCommitsProductJSON contains the JSON metadata
+// for the struct [ContractWithoutAmendmentsRecurringCommitsProduct]
+type contractWithoutAmendmentsRecurringCommitsProductJSON struct {
+	ID          apijson.Field
+	Name        apijson.Field
+	raw         string
+	ExtraFields map[string]apijson.Field
+}
+
+func (r *ContractWithoutAmendmentsRecurringCommitsProduct) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r contractWithoutAmendmentsRecurringCommitsProductJSON) RawJSON() string {
+	return r.raw
+}
+
+// Whether the created commits will use the commit rate or list rate
+type ContractWithoutAmendmentsRecurringCommitsRateType string
+
+const (
+	ContractWithoutAmendmentsRecurringCommitsRateTypeCommitRate ContractWithoutAmendmentsRecurringCommitsRateType = "COMMIT_RATE"
+	ContractWithoutAmendmentsRecurringCommitsRateTypeListRate   ContractWithoutAmendmentsRecurringCommitsRateType = "LIST_RATE"
+)
+
+func (r ContractWithoutAmendmentsRecurringCommitsRateType) IsKnown() bool {
+	switch r {
+	case ContractWithoutAmendmentsRecurringCommitsRateTypeCommitRate, ContractWithoutAmendmentsRecurringCommitsRateTypeListRate:
+		return true
+	}
+	return false
+}
+
+type ContractWithoutAmendmentsRecurringCommitsContract struct {
+	ID   string                                                `json:"id,required" format:"uuid"`
+	JSON contractWithoutAmendmentsRecurringCommitsContractJSON `json:"-"`
+}
+
+// contractWithoutAmendmentsRecurringCommitsContractJSON contains the JSON metadata
+// for the struct [ContractWithoutAmendmentsRecurringCommitsContract]
+type contractWithoutAmendmentsRecurringCommitsContractJSON struct {
+	ID          apijson.Field
+	raw         string
+	ExtraFields map[string]apijson.Field
+}
+
+func (r *ContractWithoutAmendmentsRecurringCommitsContract) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r contractWithoutAmendmentsRecurringCommitsContractJSON) RawJSON() string {
+	return r.raw
+}
+
+// The amount the customer should be billed for the commit. Not required.
+type ContractWithoutAmendmentsRecurringCommitsInvoiceAmount struct {
+	CreditTypeID string                                                     `json:"credit_type_id,required" format:"uuid"`
+	Quantity     float64                                                    `json:"quantity,required"`
+	UnitPrice    float64                                                    `json:"unit_price,required"`
+	JSON         contractWithoutAmendmentsRecurringCommitsInvoiceAmountJSON `json:"-"`
+}
+
+// contractWithoutAmendmentsRecurringCommitsInvoiceAmountJSON contains the JSON
+// metadata for the struct [ContractWithoutAmendmentsRecurringCommitsInvoiceAmount]
+type contractWithoutAmendmentsRecurringCommitsInvoiceAmountJSON struct {
+	CreditTypeID apijson.Field
+	Quantity     apijson.Field
+	UnitPrice    apijson.Field
+	raw          string
+	ExtraFields  map[string]apijson.Field
+}
+
+func (r *ContractWithoutAmendmentsRecurringCommitsInvoiceAmount) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r contractWithoutAmendmentsRecurringCommitsInvoiceAmountJSON) RawJSON() string {
+	return r.raw
+}
+
+type ContractWithoutAmendmentsRecurringCredit struct {
+	ID string `json:"id,required" format:"uuid"`
+	// The amount of commit to grant.
+	AccessAmount ContractWithoutAmendmentsRecurringCreditsAccessAmount `json:"access_amount,required"`
+	// The amount of time the created commits will be valid for
+	CommitDuration ContractWithoutAmendmentsRecurringCreditsCommitDuration `json:"commit_duration,required"`
+	// Will be passed down to the individual commits
+	Priority float64                                          `json:"priority,required"`
+	Product  ContractWithoutAmendmentsRecurringCreditsProduct `json:"product,required"`
+	// Whether the created commits will use the commit rate or list rate
+	RateType ContractWithoutAmendmentsRecurringCreditsRateType `json:"rate_type,required"`
+	// Determines the start time for the first commit
+	StartingAt time.Time `json:"starting_at,required" format:"date-time"`
+	// Will be passed down to the individual commits
+	ApplicableProductIDs []string `json:"applicable_product_ids" format:"uuid"`
+	// Will be passed down to the individual commits
+	ApplicableProductTags []string                                          `json:"applicable_product_tags"`
+	Contract              ContractWithoutAmendmentsRecurringCreditsContract `json:"contract"`
+	// Will be passed down to the individual commits
+	Description string `json:"description"`
+	// Determines when the contract will stop creating recurring commits. Optional
+	EndingBefore time.Time `json:"ending_before" format:"date-time"`
+	// The amount the customer should be billed for the commit. Not required.
+	InvoiceAmount ContractWithoutAmendmentsRecurringCreditsInvoiceAmount `json:"invoice_amount"`
+	// Displayed on invoices. Will be passed through to the individual commits
+	Name string `json:"name"`
+	// Will be passed down to the individual commits
+	NetsuiteSalesOrderID string `json:"netsuite_sales_order_id"`
+	// Will be passed down to the individual commits. This controls how much of an
+	// individual unexpired commit will roll over upon contract transition. Must be
+	// between 0 and 1.
+	RolloverFraction float64                                      `json:"rollover_fraction"`
+	JSON             contractWithoutAmendmentsRecurringCreditJSON `json:"-"`
+}
+
+// contractWithoutAmendmentsRecurringCreditJSON contains the JSON metadata for the
+// struct [ContractWithoutAmendmentsRecurringCredit]
+type contractWithoutAmendmentsRecurringCreditJSON struct {
+	ID                    apijson.Field
+	AccessAmount          apijson.Field
+	CommitDuration        apijson.Field
+	Priority              apijson.Field
+	Product               apijson.Field
+	RateType              apijson.Field
+	StartingAt            apijson.Field
+	ApplicableProductIDs  apijson.Field
+	ApplicableProductTags apijson.Field
+	Contract              apijson.Field
+	Description           apijson.Field
+	EndingBefore          apijson.Field
+	InvoiceAmount         apijson.Field
+	Name                  apijson.Field
+	NetsuiteSalesOrderID  apijson.Field
+	RolloverFraction      apijson.Field
+	raw                   string
+	ExtraFields           map[string]apijson.Field
+}
+
+func (r *ContractWithoutAmendmentsRecurringCredit) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r contractWithoutAmendmentsRecurringCreditJSON) RawJSON() string {
+	return r.raw
+}
+
+// The amount of commit to grant.
+type ContractWithoutAmendmentsRecurringCreditsAccessAmount struct {
+	CreditTypeID string                                                    `json:"credit_type_id,required" format:"uuid"`
+	Quantity     float64                                                   `json:"quantity,required"`
+	UnitPrice    float64                                                   `json:"unit_price,required"`
+	JSON         contractWithoutAmendmentsRecurringCreditsAccessAmountJSON `json:"-"`
+}
+
+// contractWithoutAmendmentsRecurringCreditsAccessAmountJSON contains the JSON
+// metadata for the struct [ContractWithoutAmendmentsRecurringCreditsAccessAmount]
+type contractWithoutAmendmentsRecurringCreditsAccessAmountJSON struct {
+	CreditTypeID apijson.Field
+	Quantity     apijson.Field
+	UnitPrice    apijson.Field
+	raw          string
+	ExtraFields  map[string]apijson.Field
+}
+
+func (r *ContractWithoutAmendmentsRecurringCreditsAccessAmount) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r contractWithoutAmendmentsRecurringCreditsAccessAmountJSON) RawJSON() string {
+	return r.raw
+}
+
+// The amount of time the created commits will be valid for
+type ContractWithoutAmendmentsRecurringCreditsCommitDuration struct {
+	Value float64                                                     `json:"value,required"`
+	Unit  ContractWithoutAmendmentsRecurringCreditsCommitDurationUnit `json:"unit"`
+	JSON  contractWithoutAmendmentsRecurringCreditsCommitDurationJSON `json:"-"`
+}
+
+// contractWithoutAmendmentsRecurringCreditsCommitDurationJSON contains the JSON
+// metadata for the struct
+// [ContractWithoutAmendmentsRecurringCreditsCommitDuration]
+type contractWithoutAmendmentsRecurringCreditsCommitDurationJSON struct {
+	Value       apijson.Field
+	Unit        apijson.Field
+	raw         string
+	ExtraFields map[string]apijson.Field
+}
+
+func (r *ContractWithoutAmendmentsRecurringCreditsCommitDuration) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r contractWithoutAmendmentsRecurringCreditsCommitDurationJSON) RawJSON() string {
+	return r.raw
+}
+
+type ContractWithoutAmendmentsRecurringCreditsCommitDurationUnit string
+
+const (
+	ContractWithoutAmendmentsRecurringCreditsCommitDurationUnitPeriods ContractWithoutAmendmentsRecurringCreditsCommitDurationUnit = "PERIODS"
+)
+
+func (r ContractWithoutAmendmentsRecurringCreditsCommitDurationUnit) IsKnown() bool {
+	switch r {
+	case ContractWithoutAmendmentsRecurringCreditsCommitDurationUnitPeriods:
+		return true
+	}
+	return false
+}
+
+type ContractWithoutAmendmentsRecurringCreditsProduct struct {
+	ID   string                                               `json:"id,required" format:"uuid"`
+	Name string                                               `json:"name,required"`
+	JSON contractWithoutAmendmentsRecurringCreditsProductJSON `json:"-"`
+}
+
+// contractWithoutAmendmentsRecurringCreditsProductJSON contains the JSON metadata
+// for the struct [ContractWithoutAmendmentsRecurringCreditsProduct]
+type contractWithoutAmendmentsRecurringCreditsProductJSON struct {
+	ID          apijson.Field
+	Name        apijson.Field
+	raw         string
+	ExtraFields map[string]apijson.Field
+}
+
+func (r *ContractWithoutAmendmentsRecurringCreditsProduct) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r contractWithoutAmendmentsRecurringCreditsProductJSON) RawJSON() string {
+	return r.raw
+}
+
+// Whether the created commits will use the commit rate or list rate
+type ContractWithoutAmendmentsRecurringCreditsRateType string
+
+const (
+	ContractWithoutAmendmentsRecurringCreditsRateTypeCommitRate ContractWithoutAmendmentsRecurringCreditsRateType = "COMMIT_RATE"
+	ContractWithoutAmendmentsRecurringCreditsRateTypeListRate   ContractWithoutAmendmentsRecurringCreditsRateType = "LIST_RATE"
+)
+
+func (r ContractWithoutAmendmentsRecurringCreditsRateType) IsKnown() bool {
+	switch r {
+	case ContractWithoutAmendmentsRecurringCreditsRateTypeCommitRate, ContractWithoutAmendmentsRecurringCreditsRateTypeListRate:
+		return true
+	}
+	return false
+}
+
+type ContractWithoutAmendmentsRecurringCreditsContract struct {
+	ID   string                                                `json:"id,required" format:"uuid"`
+	JSON contractWithoutAmendmentsRecurringCreditsContractJSON `json:"-"`
+}
+
+// contractWithoutAmendmentsRecurringCreditsContractJSON contains the JSON metadata
+// for the struct [ContractWithoutAmendmentsRecurringCreditsContract]
+type contractWithoutAmendmentsRecurringCreditsContractJSON struct {
+	ID          apijson.Field
+	raw         string
+	ExtraFields map[string]apijson.Field
+}
+
+func (r *ContractWithoutAmendmentsRecurringCreditsContract) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r contractWithoutAmendmentsRecurringCreditsContractJSON) RawJSON() string {
+	return r.raw
+}
+
+// The amount the customer should be billed for the commit. Not required.
+type ContractWithoutAmendmentsRecurringCreditsInvoiceAmount struct {
+	CreditTypeID string                                                     `json:"credit_type_id,required" format:"uuid"`
+	Quantity     float64                                                    `json:"quantity,required"`
+	UnitPrice    float64                                                    `json:"unit_price,required"`
+	JSON         contractWithoutAmendmentsRecurringCreditsInvoiceAmountJSON `json:"-"`
+}
+
+// contractWithoutAmendmentsRecurringCreditsInvoiceAmountJSON contains the JSON
+// metadata for the struct [ContractWithoutAmendmentsRecurringCreditsInvoiceAmount]
+type contractWithoutAmendmentsRecurringCreditsInvoiceAmountJSON struct {
+	CreditTypeID apijson.Field
+	Quantity     apijson.Field
+	UnitPrice    apijson.Field
+	raw          string
+	ExtraFields  map[string]apijson.Field
+}
+
+func (r *ContractWithoutAmendmentsRecurringCreditsInvoiceAmount) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r contractWithoutAmendmentsRecurringCreditsInvoiceAmountJSON) RawJSON() string {
+	return r.raw
 }
 
 type ContractWithoutAmendmentsResellerRoyalty struct {
@@ -1454,7 +1890,7 @@ func (r CreditLedger) AsUnion() CreditLedgerUnion {
 // [shared.CreditLedgerCreditCreditedLedgerEntry] or
 // [shared.CreditLedgerCreditManualLedgerEntry].
 type CreditLedgerUnion interface {
-	implementsSharedCreditLedger()
+	implementsCreditLedger()
 }
 
 func init() {
@@ -1515,7 +1951,7 @@ func (r creditLedgerCreditSegmentStartLedgerEntryJSON) RawJSON() string {
 	return r.raw
 }
 
-func (r CreditLedgerCreditSegmentStartLedgerEntry) implementsSharedCreditLedger() {}
+func (r CreditLedgerCreditSegmentStartLedgerEntry) implementsCreditLedger() {}
 
 type CreditLedgerCreditSegmentStartLedgerEntryType string
 
@@ -1560,7 +1996,7 @@ func (r creditLedgerCreditAutomatedInvoiceDeductionLedgerEntryJSON) RawJSON() st
 	return r.raw
 }
 
-func (r CreditLedgerCreditAutomatedInvoiceDeductionLedgerEntry) implementsSharedCreditLedger() {}
+func (r CreditLedgerCreditAutomatedInvoiceDeductionLedgerEntry) implementsCreditLedger() {}
 
 type CreditLedgerCreditAutomatedInvoiceDeductionLedgerEntryType string
 
@@ -1603,7 +2039,7 @@ func (r creditLedgerCreditExpirationLedgerEntryJSON) RawJSON() string {
 	return r.raw
 }
 
-func (r CreditLedgerCreditExpirationLedgerEntry) implementsSharedCreditLedger() {}
+func (r CreditLedgerCreditExpirationLedgerEntry) implementsCreditLedger() {}
 
 type CreditLedgerCreditExpirationLedgerEntryType string
 
@@ -1648,7 +2084,7 @@ func (r creditLedgerCreditCanceledLedgerEntryJSON) RawJSON() string {
 	return r.raw
 }
 
-func (r CreditLedgerCreditCanceledLedgerEntry) implementsSharedCreditLedger() {}
+func (r CreditLedgerCreditCanceledLedgerEntry) implementsCreditLedger() {}
 
 type CreditLedgerCreditCanceledLedgerEntryType string
 
@@ -1693,7 +2129,7 @@ func (r creditLedgerCreditCreditedLedgerEntryJSON) RawJSON() string {
 	return r.raw
 }
 
-func (r CreditLedgerCreditCreditedLedgerEntry) implementsSharedCreditLedger() {}
+func (r CreditLedgerCreditCreditedLedgerEntry) implementsCreditLedger() {}
 
 type CreditLedgerCreditCreditedLedgerEntryType string
 
@@ -1736,7 +2172,7 @@ func (r creditLedgerCreditManualLedgerEntryJSON) RawJSON() string {
 	return r.raw
 }
 
-func (r CreditLedgerCreditManualLedgerEntry) implementsSharedCreditLedger() {}
+func (r CreditLedgerCreditManualLedgerEntry) implementsCreditLedger() {}
 
 type CreditLedgerCreditManualLedgerEntryType string
 
@@ -2008,6 +2444,8 @@ type OverrideOverrideSpecifier struct {
 	PricingGroupValues      map[string]string             `json:"pricing_group_values"`
 	ProductID               string                        `json:"product_id" format:"uuid"`
 	ProductTags             []string                      `json:"product_tags"`
+	RecurringCommitIDs      []string                      `json:"recurring_commit_ids"`
+	RecurringCreditIDs      []string                      `json:"recurring_credit_ids"`
 	JSON                    overrideOverrideSpecifierJSON `json:"-"`
 }
 
@@ -2019,6 +2457,8 @@ type overrideOverrideSpecifierJSON struct {
 	PricingGroupValues      apijson.Field
 	ProductID               apijson.Field
 	ProductTags             apijson.Field
+	RecurringCommitIDs      apijson.Field
+	RecurringCreditIDs      apijson.Field
 	raw                     string
 	ExtraFields             map[string]apijson.Field
 }
