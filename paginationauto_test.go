@@ -24,7 +24,7 @@ func TestAutoPagination(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithBearerToken("My Bearer Token"),
 	)
-	iter := client.Contracts.Products.ListAutoPaging(context.TODO(), metronome.ContractProductListParams{})
+	iter := client.V1.Contracts.Products.ListAutoPaging(context.TODO(), metronome.V1ContractProductListParams{})
 	// Prism mock isn't going to give us real pagination
 	for i := 0; i < 3 && iter.Next(); i++ {
 		product := iter.Current()

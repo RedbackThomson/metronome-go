@@ -26,7 +26,7 @@ Or to pin the version:
 <!-- x-release-please-start-version -->
 
 ```sh
-go get -u 'github.com/Metronome-Industries/metronome-go@v0.1.0-beta.6'
+go get -u 'github.com/Metronome-Industries/metronome-go@v0.1.0-beta.7'
 ```
 
 <!-- x-release-please-end -->
@@ -53,12 +53,17 @@ func main() {
 	client := metronome.NewClient(
 		option.WithBearerToken("My Bearer Token"), // defaults to os.LookupEnv("METRONOME_BEARER_TOKEN")
 	)
-	err := client.Usage.Ingest(context.TODO(), metronome.UsageIngestParams{
-		Usage: []metronome.UsageIngestParamsUsage{{
+	err := client.V1.Usage.Ingest(context.TODO(), metronome.V1UsageIngestParams{
+		Usage: []metronome.V1UsageIngestParamsUsage{{
+			TransactionID: metronome.F("90e9401f-0f8c-4cd3-9a9f-d6beb56d8d72"),
 			CustomerID:    metronome.F("team@example.com"),
 			EventType:     metronome.F("heartbeat"),
-			Timestamp:     metronome.F("2021-01-01T00:00:00Z"),
-			TransactionID: metronome.F("2021-01-01T00:00:00Z_cluster42"),
+			Timestamp:     metronome.F("2024-01-01T00:00:00Z"),
+			Properties: metronome.F(map[string]interface{}{
+				"cluster_id":  "42",
+				"cpu_seconds": 60,
+				"region":      "Europe",
+			}),
 		}},
 	})
 	if err != nil {
@@ -152,7 +157,7 @@ client := metronome.NewClient(
 	option.WithHeader("X-Some-Header", "custom_header_info"),
 )
 
-client.Contracts.New(context.TODO(), ...,
+client.V1.Contracts.New(context.TODO(), ...,
 	// Override the header
 	option.WithHeader("X-Some-Header", "some_other_custom_header_info"),
 	// Add an undocumented field to the request body, using sjson syntax
@@ -169,11 +174,11 @@ This library provides some conveniences for working with paginated list endpoint
 You can use `.ListAutoPaging()` methods to iterate through items across all pages:
 
 ```go
-iter := client.Contracts.Products.ListAutoPaging(context.TODO(), metronome.ContractProductListParams{})
+iter := client.V1.Contracts.Products.ListAutoPaging(context.TODO(), metronome.V1ContractProductListParams{})
 // Automatically fetches more pages as needed.
 for iter.Next() {
-	contractProductListResponse := iter.Current()
-	fmt.Printf("%+v\n", contractProductListResponse)
+	v1ContractProductListResponse := iter.Current()
+	fmt.Printf("%+v\n", v1ContractProductListResponse)
 }
 if err := iter.Err(); err != nil {
 	panic(err.Error())
@@ -184,7 +189,7 @@ Or you can use simple `.List()` methods to fetch a single page and receive a sta
 with additional helper methods like `.GetNextPage()`, e.g.:
 
 ```go
-page, err := client.Contracts.Products.List(context.TODO(), metronome.ContractProductListParams{})
+page, err := client.V1.Contracts.Products.List(context.TODO(), metronome.V1ContractProductListParams{})
 for page != nil {
 	for _, product := range page.Data {
 		fmt.Printf("%+v\n", product)
@@ -206,7 +211,7 @@ When the API returns a non-success status code, we return an error with type
 To handle errors, we recommend that you use the `errors.As` pattern:
 
 ```go
-_, err := client.Contracts.New(context.TODO(), metronome.ContractNewParams{
+_, err := client.V1.Contracts.New(context.TODO(), metronome.V1ContractNewParams{
 	CustomerID: metronome.F("13117714-3f05-48e5-a6e9-a66093f13b4d"),
 	StartingAt: metronome.F(time.Now()),
 })
@@ -216,7 +221,7 @@ if err != nil {
 		println(string(apierr.DumpRequest(true)))  // Prints the serialized HTTP request
 		println(string(apierr.DumpResponse(true))) // Prints the serialized HTTP response
 	}
-	panic(err.Error()) // GET "/contracts/create": 400 Bad Request { ... }
+	panic(err.Error()) // GET "/v1/contracts/create": 400 Bad Request { ... }
 }
 ```
 
@@ -234,9 +239,9 @@ To set a per-retry timeout, use `option.WithRequestTimeout()`.
 // This sets the timeout for the request, including all the retries.
 ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 defer cancel()
-client.Contracts.New(
+client.V1.Contracts.New(
 	ctx,
-	metronome.ContractNewParams{
+	metronome.V1ContractNewParams{
 		CustomerID: metronome.F("13117714-3f05-48e5-a6e9-a66093f13b4d"),
 		StartingAt: metronome.F(time.Now()),
 	},
@@ -273,9 +278,9 @@ client := metronome.NewClient(
 )
 
 // Override per-request:
-client.Contracts.New(
+client.V1.Contracts.New(
 	context.TODO(),
-	metronome.ContractNewParams{
+	metronome.V1ContractNewParams{
 		CustomerID: metronome.F("13117714-3f05-48e5-a6e9-a66093f13b4d"),
 		StartingAt: metronome.F(time.Now()),
 	},
@@ -291,9 +296,9 @@ you need to examine response headers, status codes, or other details.
 ```go
 // Create a variable to store the HTTP response
 var response *http.Response
-contract, err := client.Contracts.New(
+contract, err := client.V1.Contracts.New(
 	context.TODO(),
-	metronome.ContractNewParams{
+	metronome.V1ContractNewParams{
 		CustomerID: metronome.F("13117714-3f05-48e5-a6e9-a66093f13b4d"),
 		StartingAt: metronome.F(time.Now()),
 	},

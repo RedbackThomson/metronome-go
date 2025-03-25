@@ -283,6 +283,42 @@ type ContractWithoutAmendmentsRecurringCommitsContract = shared.ContractWithoutA
 // This is an alias to an internal type.
 type ContractWithoutAmendmentsRecurringCommitsInvoiceAmount = shared.ContractWithoutAmendmentsRecurringCommitsInvoiceAmount
 
+// Determines whether the first and last commit will be prorated. If not provided,
+// the default is FIRST_AND_LAST (i.e. prorate both the first and last commits).
+//
+// This is an alias to an internal type.
+type ContractWithoutAmendmentsRecurringCommitsProration = shared.ContractWithoutAmendmentsRecurringCommitsProration
+
+// This is an alias to an internal value.
+const ContractWithoutAmendmentsRecurringCommitsProrationNone = shared.ContractWithoutAmendmentsRecurringCommitsProrationNone
+
+// This is an alias to an internal value.
+const ContractWithoutAmendmentsRecurringCommitsProrationFirst = shared.ContractWithoutAmendmentsRecurringCommitsProrationFirst
+
+// This is an alias to an internal value.
+const ContractWithoutAmendmentsRecurringCommitsProrationLast = shared.ContractWithoutAmendmentsRecurringCommitsProrationLast
+
+// This is an alias to an internal value.
+const ContractWithoutAmendmentsRecurringCommitsProrationFirstAndLast = shared.ContractWithoutAmendmentsRecurringCommitsProrationFirstAndLast
+
+// The frequency at which the recurring commits will be created. If not provided: -
+// The commits will be created on the usage invoice frequency. If provided: - The
+// period defined in the duration will correspond to this frequency. - Commits will
+// be created aligned with the recurring commit's start_date rather than the usage
+// invoice dates.
+//
+// This is an alias to an internal type.
+type ContractWithoutAmendmentsRecurringCommitsRecurrenceFrequency = shared.ContractWithoutAmendmentsRecurringCommitsRecurrenceFrequency
+
+// This is an alias to an internal value.
+const ContractWithoutAmendmentsRecurringCommitsRecurrenceFrequencyMonthly = shared.ContractWithoutAmendmentsRecurringCommitsRecurrenceFrequencyMonthly
+
+// This is an alias to an internal value.
+const ContractWithoutAmendmentsRecurringCommitsRecurrenceFrequencyQuarterly = shared.ContractWithoutAmendmentsRecurringCommitsRecurrenceFrequencyQuarterly
+
+// This is an alias to an internal value.
+const ContractWithoutAmendmentsRecurringCommitsRecurrenceFrequencyAnnual = shared.ContractWithoutAmendmentsRecurringCommitsRecurrenceFrequencyAnnual
+
 // This is an alias to an internal type.
 type ContractWithoutAmendmentsRecurringCredit = shared.ContractWithoutAmendmentsRecurringCredit
 
@@ -319,10 +355,41 @@ const ContractWithoutAmendmentsRecurringCreditsRateTypeListRate = shared.Contrac
 // This is an alias to an internal type.
 type ContractWithoutAmendmentsRecurringCreditsContract = shared.ContractWithoutAmendmentsRecurringCreditsContract
 
-// The amount the customer should be billed for the commit. Not required.
+// Determines whether the first and last commit will be prorated. If not provided,
+// the default is FIRST_AND_LAST (i.e. prorate both the first and last commits).
 //
 // This is an alias to an internal type.
-type ContractWithoutAmendmentsRecurringCreditsInvoiceAmount = shared.ContractWithoutAmendmentsRecurringCreditsInvoiceAmount
+type ContractWithoutAmendmentsRecurringCreditsProration = shared.ContractWithoutAmendmentsRecurringCreditsProration
+
+// This is an alias to an internal value.
+const ContractWithoutAmendmentsRecurringCreditsProrationNone = shared.ContractWithoutAmendmentsRecurringCreditsProrationNone
+
+// This is an alias to an internal value.
+const ContractWithoutAmendmentsRecurringCreditsProrationFirst = shared.ContractWithoutAmendmentsRecurringCreditsProrationFirst
+
+// This is an alias to an internal value.
+const ContractWithoutAmendmentsRecurringCreditsProrationLast = shared.ContractWithoutAmendmentsRecurringCreditsProrationLast
+
+// This is an alias to an internal value.
+const ContractWithoutAmendmentsRecurringCreditsProrationFirstAndLast = shared.ContractWithoutAmendmentsRecurringCreditsProrationFirstAndLast
+
+// The frequency at which the recurring commits will be created. If not provided: -
+// The commits will be created on the usage invoice frequency. If provided: - The
+// period defined in the duration will correspond to this frequency. - Commits will
+// be created aligned with the recurring commit's start_date rather than the usage
+// invoice dates.
+//
+// This is an alias to an internal type.
+type ContractWithoutAmendmentsRecurringCreditsRecurrenceFrequency = shared.ContractWithoutAmendmentsRecurringCreditsRecurrenceFrequency
+
+// This is an alias to an internal value.
+const ContractWithoutAmendmentsRecurringCreditsRecurrenceFrequencyMonthly = shared.ContractWithoutAmendmentsRecurringCreditsRecurrenceFrequencyMonthly
+
+// This is an alias to an internal value.
+const ContractWithoutAmendmentsRecurringCreditsRecurrenceFrequencyQuarterly = shared.ContractWithoutAmendmentsRecurringCreditsRecurrenceFrequencyQuarterly
+
+// This is an alias to an internal value.
+const ContractWithoutAmendmentsRecurringCreditsRecurrenceFrequencyAnnual = shared.ContractWithoutAmendmentsRecurringCreditsRecurrenceFrequencyAnnual
 
 // This is an alias to an internal type.
 type ContractWithoutAmendmentsResellerRoyalty = shared.ContractWithoutAmendmentsResellerRoyalty
@@ -353,6 +420,12 @@ type ContractWithoutAmendmentsScheduledChargesOnUsageInvoices = shared.ContractW
 
 // This is an alias to an internal value.
 const ContractWithoutAmendmentsScheduledChargesOnUsageInvoicesAll = shared.ContractWithoutAmendmentsScheduledChargesOnUsageInvoicesAll
+
+// This is an alias to an internal type.
+type ContractWithoutAmendmentsThresholdBillingConfiguration = shared.ContractWithoutAmendmentsThresholdBillingConfiguration
+
+// This is an alias to an internal type.
+type ContractWithoutAmendmentsThresholdBillingConfigurationCommit = shared.ContractWithoutAmendmentsThresholdBillingConfigurationCommit
 
 // This is an alias to an internal type.
 type ContractWithoutAmendmentsUsageFilter = shared.ContractWithoutAmendmentsUsageFilter
@@ -492,6 +565,18 @@ type Override = shared.Override
 
 // This is an alias to an internal type.
 type OverrideOverrideSpecifier = shared.OverrideOverrideSpecifier
+
+// This is an alias to an internal type.
+type OverrideOverrideSpecifiersBillingFrequency = shared.OverrideOverrideSpecifiersBillingFrequency
+
+// This is an alias to an internal value.
+const OverrideOverrideSpecifiersBillingFrequencyMonthly = shared.OverrideOverrideSpecifiersBillingFrequencyMonthly
+
+// This is an alias to an internal value.
+const OverrideOverrideSpecifiersBillingFrequencyQuarterly = shared.OverrideOverrideSpecifiersBillingFrequencyQuarterly
+
+// This is an alias to an internal value.
+const OverrideOverrideSpecifiersBillingFrequencyAnnual = shared.OverrideOverrideSpecifiersBillingFrequencyAnnual
 
 // This is an alias to an internal type.
 type OverrideOverrideTier = shared.OverrideOverrideTier

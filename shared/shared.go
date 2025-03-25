@@ -132,7 +132,7 @@ func (r commitJSON) RawJSON() string {
 	return r.raw
 }
 
-func (r Commit) ImplementsContractListBalancesResponseData() {}
+func (r Commit) ImplementsV1ContractListBalancesResponseData() {}
 
 type CommitProduct struct {
 	ID   string            `json:"id,required" format:"uuid"`
@@ -1013,6 +1013,7 @@ type ContractWithoutAmendments struct {
 	// after a Contract has been created. If this field is omitted, charges will appear
 	// on a separate invoice from usage charges.
 	ScheduledChargesOnUsageInvoices ContractWithoutAmendmentsScheduledChargesOnUsageInvoices `json:"scheduled_charges_on_usage_invoices"`
+	ThresholdBillingConfiguration   ContractWithoutAmendmentsThresholdBillingConfiguration   `json:"threshold_billing_configuration"`
 	// This field's availability is dependent on your client's configuration.
 	TotalContractValue float64                              `json:"total_contract_value"`
 	UsageFilter        ContractWithoutAmendmentsUsageFilter `json:"usage_filter"`
@@ -1043,6 +1044,7 @@ type contractWithoutAmendmentsJSON struct {
 	ResellerRoyalties               apijson.Field
 	SalesforceOpportunityID         apijson.Field
 	ScheduledChargesOnUsageInvoices apijson.Field
+	ThresholdBillingConfiguration   apijson.Field
 	TotalContractValue              apijson.Field
 	UsageFilter                     apijson.Field
 	raw                             string
@@ -1165,6 +1167,15 @@ type ContractWithoutAmendmentsRecurringCommit struct {
 	Name string `json:"name"`
 	// Will be passed down to the individual commits
 	NetsuiteSalesOrderID string `json:"netsuite_sales_order_id"`
+	// Determines whether the first and last commit will be prorated. If not provided,
+	// the default is FIRST_AND_LAST (i.e. prorate both the first and last commits).
+	Proration ContractWithoutAmendmentsRecurringCommitsProration `json:"proration"`
+	// The frequency at which the recurring commits will be created. If not provided: -
+	// The commits will be created on the usage invoice frequency. If provided: - The
+	// period defined in the duration will correspond to this frequency. - Commits will
+	// be created aligned with the recurring commit's start_date rather than the usage
+	// invoice dates.
+	RecurrenceFrequency ContractWithoutAmendmentsRecurringCommitsRecurrenceFrequency `json:"recurrence_frequency"`
 	// Will be passed down to the individual commits. This controls how much of an
 	// individual unexpired commit will roll over upon contract transition. Must be
 	// between 0 and 1.
@@ -1190,6 +1201,8 @@ type contractWithoutAmendmentsRecurringCommitJSON struct {
 	InvoiceAmount         apijson.Field
 	Name                  apijson.Field
 	NetsuiteSalesOrderID  apijson.Field
+	Proration             apijson.Field
+	RecurrenceFrequency   apijson.Field
 	RolloverFraction      apijson.Field
 	raw                   string
 	ExtraFields           map[string]apijson.Field
@@ -1354,6 +1367,46 @@ func (r contractWithoutAmendmentsRecurringCommitsInvoiceAmountJSON) RawJSON() st
 	return r.raw
 }
 
+// Determines whether the first and last commit will be prorated. If not provided,
+// the default is FIRST_AND_LAST (i.e. prorate both the first and last commits).
+type ContractWithoutAmendmentsRecurringCommitsProration string
+
+const (
+	ContractWithoutAmendmentsRecurringCommitsProrationNone         ContractWithoutAmendmentsRecurringCommitsProration = "NONE"
+	ContractWithoutAmendmentsRecurringCommitsProrationFirst        ContractWithoutAmendmentsRecurringCommitsProration = "FIRST"
+	ContractWithoutAmendmentsRecurringCommitsProrationLast         ContractWithoutAmendmentsRecurringCommitsProration = "LAST"
+	ContractWithoutAmendmentsRecurringCommitsProrationFirstAndLast ContractWithoutAmendmentsRecurringCommitsProration = "FIRST_AND_LAST"
+)
+
+func (r ContractWithoutAmendmentsRecurringCommitsProration) IsKnown() bool {
+	switch r {
+	case ContractWithoutAmendmentsRecurringCommitsProrationNone, ContractWithoutAmendmentsRecurringCommitsProrationFirst, ContractWithoutAmendmentsRecurringCommitsProrationLast, ContractWithoutAmendmentsRecurringCommitsProrationFirstAndLast:
+		return true
+	}
+	return false
+}
+
+// The frequency at which the recurring commits will be created. If not provided: -
+// The commits will be created on the usage invoice frequency. If provided: - The
+// period defined in the duration will correspond to this frequency. - Commits will
+// be created aligned with the recurring commit's start_date rather than the usage
+// invoice dates.
+type ContractWithoutAmendmentsRecurringCommitsRecurrenceFrequency string
+
+const (
+	ContractWithoutAmendmentsRecurringCommitsRecurrenceFrequencyMonthly   ContractWithoutAmendmentsRecurringCommitsRecurrenceFrequency = "MONTHLY"
+	ContractWithoutAmendmentsRecurringCommitsRecurrenceFrequencyQuarterly ContractWithoutAmendmentsRecurringCommitsRecurrenceFrequency = "QUARTERLY"
+	ContractWithoutAmendmentsRecurringCommitsRecurrenceFrequencyAnnual    ContractWithoutAmendmentsRecurringCommitsRecurrenceFrequency = "ANNUAL"
+)
+
+func (r ContractWithoutAmendmentsRecurringCommitsRecurrenceFrequency) IsKnown() bool {
+	switch r {
+	case ContractWithoutAmendmentsRecurringCommitsRecurrenceFrequencyMonthly, ContractWithoutAmendmentsRecurringCommitsRecurrenceFrequencyQuarterly, ContractWithoutAmendmentsRecurringCommitsRecurrenceFrequencyAnnual:
+		return true
+	}
+	return false
+}
+
 type ContractWithoutAmendmentsRecurringCredit struct {
 	ID string `json:"id,required" format:"uuid"`
 	// The amount of commit to grant.
@@ -1376,12 +1429,19 @@ type ContractWithoutAmendmentsRecurringCredit struct {
 	Description string `json:"description"`
 	// Determines when the contract will stop creating recurring commits. Optional
 	EndingBefore time.Time `json:"ending_before" format:"date-time"`
-	// The amount the customer should be billed for the commit. Not required.
-	InvoiceAmount ContractWithoutAmendmentsRecurringCreditsInvoiceAmount `json:"invoice_amount"`
 	// Displayed on invoices. Will be passed through to the individual commits
 	Name string `json:"name"`
 	// Will be passed down to the individual commits
 	NetsuiteSalesOrderID string `json:"netsuite_sales_order_id"`
+	// Determines whether the first and last commit will be prorated. If not provided,
+	// the default is FIRST_AND_LAST (i.e. prorate both the first and last commits).
+	Proration ContractWithoutAmendmentsRecurringCreditsProration `json:"proration"`
+	// The frequency at which the recurring commits will be created. If not provided: -
+	// The commits will be created on the usage invoice frequency. If provided: - The
+	// period defined in the duration will correspond to this frequency. - Commits will
+	// be created aligned with the recurring commit's start_date rather than the usage
+	// invoice dates.
+	RecurrenceFrequency ContractWithoutAmendmentsRecurringCreditsRecurrenceFrequency `json:"recurrence_frequency"`
 	// Will be passed down to the individual commits. This controls how much of an
 	// individual unexpired commit will roll over upon contract transition. Must be
 	// between 0 and 1.
@@ -1404,9 +1464,10 @@ type contractWithoutAmendmentsRecurringCreditJSON struct {
 	Contract              apijson.Field
 	Description           apijson.Field
 	EndingBefore          apijson.Field
-	InvoiceAmount         apijson.Field
 	Name                  apijson.Field
 	NetsuiteSalesOrderID  apijson.Field
+	Proration             apijson.Field
+	RecurrenceFrequency   apijson.Field
 	RolloverFraction      apijson.Field
 	raw                   string
 	ExtraFields           map[string]apijson.Field
@@ -1545,30 +1606,44 @@ func (r contractWithoutAmendmentsRecurringCreditsContractJSON) RawJSON() string 
 	return r.raw
 }
 
-// The amount the customer should be billed for the commit. Not required.
-type ContractWithoutAmendmentsRecurringCreditsInvoiceAmount struct {
-	CreditTypeID string                                                     `json:"credit_type_id,required" format:"uuid"`
-	Quantity     float64                                                    `json:"quantity,required"`
-	UnitPrice    float64                                                    `json:"unit_price,required"`
-	JSON         contractWithoutAmendmentsRecurringCreditsInvoiceAmountJSON `json:"-"`
+// Determines whether the first and last commit will be prorated. If not provided,
+// the default is FIRST_AND_LAST (i.e. prorate both the first and last commits).
+type ContractWithoutAmendmentsRecurringCreditsProration string
+
+const (
+	ContractWithoutAmendmentsRecurringCreditsProrationNone         ContractWithoutAmendmentsRecurringCreditsProration = "NONE"
+	ContractWithoutAmendmentsRecurringCreditsProrationFirst        ContractWithoutAmendmentsRecurringCreditsProration = "FIRST"
+	ContractWithoutAmendmentsRecurringCreditsProrationLast         ContractWithoutAmendmentsRecurringCreditsProration = "LAST"
+	ContractWithoutAmendmentsRecurringCreditsProrationFirstAndLast ContractWithoutAmendmentsRecurringCreditsProration = "FIRST_AND_LAST"
+)
+
+func (r ContractWithoutAmendmentsRecurringCreditsProration) IsKnown() bool {
+	switch r {
+	case ContractWithoutAmendmentsRecurringCreditsProrationNone, ContractWithoutAmendmentsRecurringCreditsProrationFirst, ContractWithoutAmendmentsRecurringCreditsProrationLast, ContractWithoutAmendmentsRecurringCreditsProrationFirstAndLast:
+		return true
+	}
+	return false
 }
 
-// contractWithoutAmendmentsRecurringCreditsInvoiceAmountJSON contains the JSON
-// metadata for the struct [ContractWithoutAmendmentsRecurringCreditsInvoiceAmount]
-type contractWithoutAmendmentsRecurringCreditsInvoiceAmountJSON struct {
-	CreditTypeID apijson.Field
-	Quantity     apijson.Field
-	UnitPrice    apijson.Field
-	raw          string
-	ExtraFields  map[string]apijson.Field
-}
+// The frequency at which the recurring commits will be created. If not provided: -
+// The commits will be created on the usage invoice frequency. If provided: - The
+// period defined in the duration will correspond to this frequency. - Commits will
+// be created aligned with the recurring commit's start_date rather than the usage
+// invoice dates.
+type ContractWithoutAmendmentsRecurringCreditsRecurrenceFrequency string
 
-func (r *ContractWithoutAmendmentsRecurringCreditsInvoiceAmount) UnmarshalJSON(data []byte) (err error) {
-	return apijson.UnmarshalRoot(data, r)
-}
+const (
+	ContractWithoutAmendmentsRecurringCreditsRecurrenceFrequencyMonthly   ContractWithoutAmendmentsRecurringCreditsRecurrenceFrequency = "MONTHLY"
+	ContractWithoutAmendmentsRecurringCreditsRecurrenceFrequencyQuarterly ContractWithoutAmendmentsRecurringCreditsRecurrenceFrequency = "QUARTERLY"
+	ContractWithoutAmendmentsRecurringCreditsRecurrenceFrequencyAnnual    ContractWithoutAmendmentsRecurringCreditsRecurrenceFrequency = "ANNUAL"
+)
 
-func (r contractWithoutAmendmentsRecurringCreditsInvoiceAmountJSON) RawJSON() string {
-	return r.raw
+func (r ContractWithoutAmendmentsRecurringCreditsRecurrenceFrequency) IsKnown() bool {
+	switch r {
+	case ContractWithoutAmendmentsRecurringCreditsRecurrenceFrequencyMonthly, ContractWithoutAmendmentsRecurringCreditsRecurrenceFrequencyQuarterly, ContractWithoutAmendmentsRecurringCreditsRecurrenceFrequencyAnnual:
+		return true
+	}
+	return false
 }
 
 type ContractWithoutAmendmentsResellerRoyalty struct {
@@ -1650,6 +1725,73 @@ func (r ContractWithoutAmendmentsScheduledChargesOnUsageInvoices) IsKnown() bool
 		return true
 	}
 	return false
+}
+
+type ContractWithoutAmendmentsThresholdBillingConfiguration struct {
+	Commit ContractWithoutAmendmentsThresholdBillingConfigurationCommit `json:"commit,required"`
+	// When set to false, the contract will not be evaluated against the
+	// threshold_amount. Toggling to true will result an immediate evaluation,
+	// regardless of prior state
+	IsEnabled bool `json:"is_enabled,required"`
+	// Specify the threshold amount for the contract. Each time the contract's usage
+	// hits this amount, a threshold charge will be initiated.
+	ThresholdAmount float64                                                    `json:"threshold_amount,required"`
+	JSON            contractWithoutAmendmentsThresholdBillingConfigurationJSON `json:"-"`
+}
+
+// contractWithoutAmendmentsThresholdBillingConfigurationJSON contains the JSON
+// metadata for the struct [ContractWithoutAmendmentsThresholdBillingConfiguration]
+type contractWithoutAmendmentsThresholdBillingConfigurationJSON struct {
+	Commit          apijson.Field
+	IsEnabled       apijson.Field
+	ThresholdAmount apijson.Field
+	raw             string
+	ExtraFields     map[string]apijson.Field
+}
+
+func (r *ContractWithoutAmendmentsThresholdBillingConfiguration) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r contractWithoutAmendmentsThresholdBillingConfigurationJSON) RawJSON() string {
+	return r.raw
+}
+
+type ContractWithoutAmendmentsThresholdBillingConfigurationCommit struct {
+	ProductID string `json:"product_id,required"`
+	// Which products the threshold commit applies to. If both applicable_product_ids
+	// and applicable_product_tags are not provided, the commit applies to all
+	// products.
+	ApplicableProductIDs []string `json:"applicable_product_ids" format:"uuid"`
+	// Which tags the threshold commit applies to. If both applicable_product_ids and
+	// applicable_product_tags are not provided, the commit applies to all products.
+	ApplicableProductTags []string `json:"applicable_product_tags"`
+	Description           string   `json:"description"`
+	// Specify the name of the line item for the threshold charge. If left blank, it
+	// will default to the commit product name.
+	Name string                                                           `json:"name"`
+	JSON contractWithoutAmendmentsThresholdBillingConfigurationCommitJSON `json:"-"`
+}
+
+// contractWithoutAmendmentsThresholdBillingConfigurationCommitJSON contains the
+// JSON metadata for the struct
+// [ContractWithoutAmendmentsThresholdBillingConfigurationCommit]
+type contractWithoutAmendmentsThresholdBillingConfigurationCommitJSON struct {
+	ProductID             apijson.Field
+	ApplicableProductIDs  apijson.Field
+	ApplicableProductTags apijson.Field
+	Description           apijson.Field
+	Name                  apijson.Field
+	raw                   string
+	ExtraFields           map[string]apijson.Field
+}
+
+func (r *ContractWithoutAmendmentsThresholdBillingConfigurationCommit) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r contractWithoutAmendmentsThresholdBillingConfigurationCommitJSON) RawJSON() string {
+	return r.raw
 }
 
 type ContractWithoutAmendmentsUsageFilter struct {
@@ -1775,7 +1917,7 @@ func (r creditJSON) RawJSON() string {
 	return r.raw
 }
 
-func (r Credit) ImplementsContractListBalancesResponseData() {}
+func (r Credit) ImplementsV1ContractListBalancesResponseData() {}
 
 type CreditProduct struct {
 	ID   string            `json:"id,required" format:"uuid"`
@@ -2439,19 +2581,21 @@ func (r overrideJSON) RawJSON() string {
 }
 
 type OverrideOverrideSpecifier struct {
-	CommitIDs               []string                      `json:"commit_ids"`
-	PresentationGroupValues map[string]string             `json:"presentation_group_values"`
-	PricingGroupValues      map[string]string             `json:"pricing_group_values"`
-	ProductID               string                        `json:"product_id" format:"uuid"`
-	ProductTags             []string                      `json:"product_tags"`
-	RecurringCommitIDs      []string                      `json:"recurring_commit_ids"`
-	RecurringCreditIDs      []string                      `json:"recurring_credit_ids"`
-	JSON                    overrideOverrideSpecifierJSON `json:"-"`
+	BillingFrequency        OverrideOverrideSpecifiersBillingFrequency `json:"billing_frequency"`
+	CommitIDs               []string                                   `json:"commit_ids"`
+	PresentationGroupValues map[string]string                          `json:"presentation_group_values"`
+	PricingGroupValues      map[string]string                          `json:"pricing_group_values"`
+	ProductID               string                                     `json:"product_id" format:"uuid"`
+	ProductTags             []string                                   `json:"product_tags"`
+	RecurringCommitIDs      []string                                   `json:"recurring_commit_ids"`
+	RecurringCreditIDs      []string                                   `json:"recurring_credit_ids"`
+	JSON                    overrideOverrideSpecifierJSON              `json:"-"`
 }
 
 // overrideOverrideSpecifierJSON contains the JSON metadata for the struct
 // [OverrideOverrideSpecifier]
 type overrideOverrideSpecifierJSON struct {
+	BillingFrequency        apijson.Field
 	CommitIDs               apijson.Field
 	PresentationGroupValues apijson.Field
 	PricingGroupValues      apijson.Field
@@ -2469,6 +2613,22 @@ func (r *OverrideOverrideSpecifier) UnmarshalJSON(data []byte) (err error) {
 
 func (r overrideOverrideSpecifierJSON) RawJSON() string {
 	return r.raw
+}
+
+type OverrideOverrideSpecifiersBillingFrequency string
+
+const (
+	OverrideOverrideSpecifiersBillingFrequencyMonthly   OverrideOverrideSpecifiersBillingFrequency = "MONTHLY"
+	OverrideOverrideSpecifiersBillingFrequencyQuarterly OverrideOverrideSpecifiersBillingFrequency = "QUARTERLY"
+	OverrideOverrideSpecifiersBillingFrequencyAnnual    OverrideOverrideSpecifiersBillingFrequency = "ANNUAL"
+)
+
+func (r OverrideOverrideSpecifiersBillingFrequency) IsKnown() bool {
+	switch r {
+	case OverrideOverrideSpecifiersBillingFrequencyMonthly, OverrideOverrideSpecifiersBillingFrequencyQuarterly, OverrideOverrideSpecifiersBillingFrequencyAnnual:
+		return true
+	}
+	return false
 }
 
 type OverrideOverrideTier struct {

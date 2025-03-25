@@ -24,7 +24,7 @@ func TestManualPagination(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithBearerToken("My Bearer Token"),
 	)
-	page, err := client.Contracts.Products.List(context.TODO(), metronome.ContractProductListParams{})
+	page, err := client.V1.Contracts.Products.List(context.TODO(), metronome.V1ContractProductListParams{})
 	if err != nil {
 		t.Fatalf("err should be nil: %s", err.Error())
 	}
