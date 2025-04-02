@@ -1,7 +1,7 @@
 package metronome
 
 import (
-	"github.com/Metronome-Industries/metronome-go/internal/param"
+	"github.com/Metronome-Industries/metronome-go/packages/param"
 	"io"
 )
 

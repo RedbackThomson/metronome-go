@@ -22,7 +22,7 @@ import (
 	"github.com/Metronome-Industries/metronome-go/internal/apierror"
 	"github.com/Metronome-Industries/metronome-go/internal/apiform"
 	"github.com/Metronome-Industries/metronome-go/internal/apiquery"
-	"github.com/Metronome-Industries/metronome-go/internal/param"
+	"github.com/Metronome-Industries/metronome-go/packages/param"
 )
 
 func getDefaultHeaders() map[string]string {

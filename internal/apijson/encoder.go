@@ -13,7 +13,7 @@ import (
 
 	"github.com/tidwall/sjson"
 
-	"github.com/Metronome-Industries/metronome-go/internal/param"
+	"github.com/Metronome-Industries/metronome-go/packages/param"
 )
 
 var encoders sync.Map // map[encoderEntry]encoderFunc
